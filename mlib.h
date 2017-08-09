@@ -1,3 +1,5 @@
+// To-do: Split this file into multiple files
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +38,8 @@ var_t CONS_FUN={.type=SPECIAL,.data.s="CONS"};
 var_t *CONS=&CONS_FUN;
 var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
 var_t *LAMBDA=&LAMBDA_FUN;
+var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
+var_t *ADD=&ADD_FUN;
 // Variable creation
 var_t *new_ivar(int i)
 {
@@ -85,6 +89,21 @@ var_t *cdr(var_t *var)
 	assert(var->type==CELL);
 	return var->data.l->cdr;
 }
+// Arithmetic
+var_t *add(var_t *v1,var_t *v2)
+{
+	assert(v1->type==INT||v1->type==FLOAT);
+	assert(v2->type==INT||v2->type==FLOAT);
+	var_t *result=NEW(var_t);
+	result->type=INT;
+	if (v1->type==FLOAT||v2->type==FLOAT) {
+		result->type=FLOAT;
+		result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
+				+(v2->type==INT?v2->data.i:v2->data.f);
+	} else 
+		result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
+				+(v2->type==INT?v2->data.i:v2->data.f);
+}
 // Other
 void print_var(var_t *v)
 {
@@ -124,7 +143,8 @@ datatype infer_type(char *input)
 	if (!strcasecmp("CAR",input)
 			||!strcasecmp("CDR",input)
 			||!strcasecmp("CONS",input)
-			||!strcasecmp("LAMBDA",input))
+			||!strcasecmp("LAMBDA",input)
+			||!strcasecmp("ADD",input))
 		return SPECIAL;
 	if (*input=='(') {
 		char *lambda=malloc(7);
@@ -202,6 +222,8 @@ var_t *to_var(char *str)
 		return CONS;
 	if (!strcasecmp("LAMBDA",str))
 		return LAMBDA;
+	if (!strcasecmp("ADD",str))
+		return ADD;
 	int i;
 	float f;
 	char *s;
@@ -264,6 +286,10 @@ var_t *apply_function(var_t *function,var_t *args)
 	if (function==CONS) {
 		assert(cdr(cdr(args))==NIL);
 		return cons(car(args),car(cdr(args)));
+	}
+	if (function==ADD) {
+		assert(cdr(cdr(args))==NIL);
+		return add(car(args),car(cdr(args)));
 	}
 	assert(function->type==FUNCTION);
 	// Nothing after this line has been tested.
