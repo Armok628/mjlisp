@@ -34,6 +34,8 @@ var_t CDR_FUN={.type=SPECIAL,.data.s="CDR"};
 var_t *CDR=&CDR_FUN;
 var_t CONS_FUN={.type=SPECIAL,.data.s="CONS"};
 var_t *CONS=&CONS_FUN;
+var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
+var_t *LAMBDA=&LAMBDA_FUN;
 // Variable creation
 var_t *new_ivar(int i)
 {
@@ -121,9 +123,16 @@ datatype infer_type(char *input)
 		return VOID;
 	if (!strcasecmp("CAR",input)
 			||!strcasecmp("CDR",input)
-			||!strcasecmp("CONS",input))
+			||!strcasecmp("CONS",input)
+			||!strcasecmp("LAMBDA",input))
 		return SPECIAL;
 	if (*input=='(') {
+		char *lambda=malloc(7);
+		strncpy(lambda,input+1,6);
+		if (!strcasecmp("LAMBDA",lambda))
+			return FUNCTION;
+		else
+			free(lambda);
 		for (char *c=input;*c;c++)
 			if (*c==')')
 				return CELL;
@@ -157,7 +166,7 @@ datatype infer_type(char *input)
 		default: return ERROR;
 	}
 }
-void print_type(char *input)
+void print_type_of(char *input)
 {
 	datatype type=infer_type(input);
 	switch (type) {
@@ -177,6 +186,8 @@ void print_type(char *input)
 			     break;
 		case CELL: printf("CELL\n");
 			   break;
+		case FUNCTION: printf("FUNCTION\n");
+			       break;
 		default: printf("%i",type);
 	}
 }
@@ -189,6 +200,8 @@ var_t *to_var(char *str)
 		return CDR;
 	if (!strcasecmp("CONS",str))
 		return CONS;
+	if (!strcasecmp("LAMBDA",str))
+		return LAMBDA;
 	int i;
 	float f;
 	char *s;
@@ -228,7 +241,7 @@ var_t *interpret_list(char *str)
 			token[marker-c]='\0';
 			marker=c;
 			//printf("|%s| ",token);
-			//print_type(token);
+			//print_type_of(token);
 			list->data.l->car=to_var(token);
 			if (parens==0)
 				break;
