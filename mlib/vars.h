@@ -20,10 +20,13 @@ var_t DISPLAY_FUN={.type=SPECIAL,.data.s="DISPLAY"};
 var_t *DISPLAY=&DISPLAY_FUN;
 var_t EQ_FUN={.type=SPECIAL,.data.s="EQ"};
 var_t *EQ=&EQ_FUN;
+var_t DEFINE_FUN={.type=SPECIAL,.data.s="DEFINE"};
+var_t *DEFINE=&DEFINE_FUN;
 var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
 var_t *LAMBDA=&LAMBDA_FUN;
 var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
 var_t *ADD=&ADD_FUN;
+var_t *ENV;
 var_t *new_ivar(int i)
 {
 	var_t *v=NEW(var_t);

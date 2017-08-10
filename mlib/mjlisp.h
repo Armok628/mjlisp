@@ -24,6 +24,7 @@ datatype infer_type(char *input)
 			||!strcasecmp("CONS",input)
 			||!strcasecmp("DISPLAY",input)
 			||!strcasecmp("EQ",input)
+			||!strcasecmp("DEFINE",input)
 			||!strcasecmp("LAMBDA",input)
 			||!strcasecmp("ADD",input))
 		return SPECIAL;
@@ -69,6 +70,12 @@ datatype infer_type(char *input)
 }
 var_t *reference(var_t *term,var_t *env)
 {
+	if (!env) {
+		env=NIL;
+		return NIL;
+	}
+	if (term->type==VARIABLE)
+		term->type=SYMBOL;
 	for (;env->type==CELL&&cdr(env);env=cdr(env))
 		if (eq(term,car(car(env)))==T)
 			return cdr(car(env));
@@ -87,8 +94,14 @@ var_t *apply_function(var_t *function,var_t *args)
 		return display(car(args));
 	if (function==EQ)
 		return eq(car(args),car(cdr(args)));
+	if (function==DEFINE) {
+		ENV=cons(cons(car(args),car(cdr(args))),ENV);
+		car(car(ENV))->type=VARIABLE;
+		car(args)->type=SYMBOL;
+		return car(args);
+	}
 	if (function==LAMBDA) {
-		var_t *fun=new_lvar(cons(car(args),cdr(args)));
+		var_t *fun=cons(car(args),cdr(args));
 		fun->type=FUNCTION;
 		return fun;
 	}
@@ -98,7 +111,7 @@ var_t *apply_function(var_t *function,var_t *args)
 	return NULL; // To-do: Create lexical binding, then eval
 }
 var_t *eval(char *str);
-var_t *to_var(char *str)
+var_t *to_var(char *str,var_t *env)
 {
 	if (!strcasecmp("CAR",str))
 		return CAR;
@@ -110,6 +123,8 @@ var_t *to_var(char *str)
 		return DISPLAY;
 	if (!strcasecmp("EQ",str))
 		return EQ;
+	if (!strcasecmp("DEFINE",str))
+		return DEFINE;
 	if (!strcasecmp("LAMBDA",str))
 		return LAMBDA;
 	if (!strcasecmp("ADD",str))
@@ -118,27 +133,27 @@ var_t *to_var(char *str)
 	float f;
 	char *s;
 	switch (infer_type(str)) {
-		//case VARIABLE: /*To-do*/ break;
 		case VOID: return NIL;
 		case INT: sscanf(str,"%i",&i);
 			  return new_ivar(i);
 		case FLOAT: sscanf(str,"%f",&f);
 			  return new_fvar(f);
 		case CHAR: return new_cvar(*++str);
-		/**/ case VARIABLE: /**/
+		case VARIABLE:
 		case SYMBOL: q=*str=='\'';
 			     s=malloc(strlen(str)-q);
 			     strcpy(s,str+q);
-			     return new_svar(s);
+			     if (q)
+				     return new_svar(s);
+			     else
+				     return reference(new_svar(s),env);
 		case CELL: return eval(str);
 	}
 }
 var_t *eval(char *str)
 {
-	// To-do: Refactor into multiple functions
-	// read-from-string and eval
 	if (infer_type(str)!=CELL)
-		return to_var(str);
+		return to_var(str,ENV);
 	var_t *list=NIL;
 	int parens=0;
 	char *start=str,*token=malloc(strlen(str));
@@ -150,7 +165,7 @@ var_t *eval(char *str)
 			marker--;
 			strncpy(token,c+1,marker-c);
 			token[marker-c]='\0';
-			list=to_var(token);
+			list=to_var(token,ENV);
 			c-=2;
 			marker=c;
 			continue;
@@ -165,7 +180,7 @@ var_t *eval(char *str)
 			marker--;
 			strncpy(token,c+1,marker-c);
 			token[marker-c]='\0';
-			list->data.l->car=to_var(token);
+			list->data.l->car=to_var(token,ENV);
 			marker=c;
 			if (parens==0)
 				break;
