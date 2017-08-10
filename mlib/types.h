@@ -2,6 +2,7 @@
 
 #ifndef TYPES_H
 #define TYPES_H
+typedef enum {false,true} bool;
 typedef enum {/**/ERROR,VARIABLE,SPECIAL,VOID,/*Pseudo-types*/
 	INT,FLOAT,CHAR,
 	SYMBOL,CELL,FUNCTION} datatype;

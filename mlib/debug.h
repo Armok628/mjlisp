@@ -1,12 +1,10 @@
 #include "types.h"
 #include "vars.h"
 #include "cfunc.h"
-#include "mjlisp.h"
 #ifndef DEBUG_H
 #define DEBUG_H
-void print_type_of(char *input)
+void print_type(datatype type)
 {
-	datatype type=infer_type(input);
 	switch (type) {
 		case SPECIAL: printf("SPECIAL\n");
 			      break;

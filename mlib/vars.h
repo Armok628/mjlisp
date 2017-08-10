@@ -8,6 +8,8 @@
 #define VARS_H
 var_t NIL_VAR={.type=VOID,.data.l=NULL};
 var_t *NIL=&NIL_VAR;
+var_t T_SYMBOL={.type=SYMBOL,.data.s="T"};
+var_t *T=&T_SYMBOL;
 var_t CAR_FUN={.type=SPECIAL,.data.s="CAR"};
 var_t *CAR=&CAR_FUN;
 var_t CDR_FUN={.type=SPECIAL,.data.s="CDR"};
@@ -16,6 +18,8 @@ var_t CONS_FUN={.type=SPECIAL,.data.s="CONS"};
 var_t *CONS=&CONS_FUN;
 var_t DISPLAY_FUN={.type=SPECIAL,.data.s="DISPLAY"};
 var_t *DISPLAY=&DISPLAY_FUN;
+var_t EQ_FUN={.type=SPECIAL,.data.s="EQ"};
+var_t *EQ=&EQ_FUN;
 var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
 var_t *LAMBDA=&LAMBDA_FUN;
 var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};

@@ -1,5 +1,6 @@
 // Lisp core functions
 
+#include "types.h" // Datatypes
 #include "vars.h" // Variable tools
 
 #ifndef CFUNC_H
@@ -53,6 +54,18 @@ var_t *display(var_t *v)
 		putchar(' ');
 	}
 	printf("\e[D)");
+	return NIL;
+}
+var_t *eq(var_t *v1,var_t *v2)
+{
+	if (v1->type!=v2->type)
+		return NIL;
+	if (v1->type==SYMBOL)
+		return v1==v2||!strcmp(v1->data.s,v2->data.s)?T:NIL;
+	if (v1->type==VOID&&v2->type==VOID)
+		return T;
+	if (v1->type!=CELL)
+		return v1->data.i==v2->data.i?T:NIL;
 	return NIL;
 }
 var_t *add(var_t *v1,var_t *v2)

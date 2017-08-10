@@ -23,6 +23,7 @@ datatype infer_type(char *input)
 			||!strcasecmp("CDR",input)
 			||!strcasecmp("CONS",input)
 			||!strcasecmp("DISPLAY",input)
+			||!strcasecmp("EQ",input)
 			||!strcasecmp("LAMBDA",input)
 			||!strcasecmp("ADD",input))
 		return SPECIAL;
@@ -66,6 +67,13 @@ datatype infer_type(char *input)
 		default: return ERROR;
 	}
 }
+var_t *reference(var_t *term,var_t *env)
+{
+	for (;env->type==CELL&&cdr(env);env=cdr(env))
+		if (eq(term,car(car(env)))==T)
+			return cdr(car(env));
+	return NIL;
+}
 var_t *apply_function(var_t *function,var_t *args)
 {
 	assert(args->type==CELL||args->type==VOID);
@@ -77,6 +85,8 @@ var_t *apply_function(var_t *function,var_t *args)
 		return cons(car(args),car(cdr(args)));
 	if (function==DISPLAY)
 		return display(car(args));
+	if (function==EQ)
+		return eq(car(args),car(cdr(args)));
 	if (function==LAMBDA) {
 		var_t *fun=new_lvar(cons(car(args),cdr(args)));
 		fun->type=FUNCTION;
@@ -98,6 +108,8 @@ var_t *to_var(char *str)
 		return CONS;
 	if (!strcasecmp("DISPLAY",str))
 		return DISPLAY;
+	if (!strcasecmp("EQ",str))
+		return EQ;
 	if (!strcasecmp("LAMBDA",str))
 		return LAMBDA;
 	if (!strcasecmp("ADD",str))
@@ -125,6 +137,8 @@ var_t *eval(char *str)
 {
 	// To-do: Refactor into multiple functions
 	// read-from-string and eval
+	if (infer_type(str)!=CELL)
+		return to_var(str);
 	var_t *list=NIL;
 	int parens=0;
 	char *start=str,*token=malloc(strlen(str));
