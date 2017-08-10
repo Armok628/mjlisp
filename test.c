@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "mlib.h"
+#include "mlib/mjlisp.h"
 void dbg_print_type(char *input);
 int main(int argc,char **argv)
 {

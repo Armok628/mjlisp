@@ -9,107 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#define NEW(X) malloc(sizeof(X))
-#ifndef MLISP_H
-#define MLISP_H
 
-// Type definitions
-typedef enum {/**/ERROR,VARIABLE,SPECIAL,VOID,/*Pseudo-types*/
-	INT,FLOAT,CHAR,
-	SYMBOL,CELL,FUNCTION} datatype;
-struct cell_t;
-typedef struct {
-	union {
-		int i;
-		float f;
-		char c;
-		char *s;
-		struct cell_t *l;
-	} data;
-	datatype type;
-} var_t;
-typedef struct cell_t {
-	var_t *car;
-	var_t *cdr;
-} cell_t;
-// Special variable declarations
-var_t NIL_VAR={.type=VOID,.data.l=NULL};
-var_t *NIL=&NIL_VAR;
-var_t CAR_FUN={.type=SPECIAL,.data.s="CAR"};
-var_t *CAR=&CAR_FUN;
-var_t CDR_FUN={.type=SPECIAL,.data.s="CDR"};
-var_t *CDR=&CDR_FUN;
-var_t CONS_FUN={.type=SPECIAL,.data.s="CONS"};
-var_t *CONS=&CONS_FUN;
-var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
-var_t *LAMBDA=&LAMBDA_FUN;
-var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
-var_t *ADD=&ADD_FUN;
-// Variable creation
-var_t *new_ivar(int i)
-{
-	var_t *v=NEW(var_t);
-	v->type=INT;
-	v->data.i=i;
-	return v;
-}
-var_t *new_fvar(float f)
-{
-	var_t *v=NEW(var_t);
-	v->type=FLOAT;
-	v->data.f=f;
-	return v;
-}
-var_t *new_cvar(char c)
-{
-	var_t *v=NEW(var_t);
-	v->type=CHAR;
-	v->data.c=c;
-	return v;
-}
-var_t *new_svar(char *s)
-{
-	var_t *v=NEW(var_t);
-	v->type=SYMBOL;
-	v->data.s=s;
-	return v;
-}
-// Cell creation and access
-var_t *cons(var_t *var1,var_t *var2)
-{
-	var_t *c=NEW(var_t);
-	c->type=CELL;
-	c->data.l=NEW(cell_t);
-	c->data.l->car=var1;
-	c->data.l->cdr=var2?var2:NIL;
-	return c;
-}
-var_t *car(var_t *var)
-{
-	assert(var->type==CELL);
-	return var->data.l->car;
-}
-var_t *cdr(var_t *var)
-{
-	assert(var->type==CELL);
-	return var->data.l->cdr;
-}
-// Arithmetic
-var_t *add(var_t *v1,var_t *v2)
-{
-	assert(v1->type==INT||v1->type==FLOAT);
-	assert(v2->type==INT||v2->type==FLOAT);
-	var_t *result=NEW(var_t);
-	result->type=INT;
-	if (v1->type==FLOAT||v2->type==FLOAT) {
-		result->type=FLOAT;
-		result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
-				+(v2->type==INT?v2->data.i:v2->data.f);
-	} else 
-		result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
-				+(v2->type==INT?v2->data.i:v2->data.f);
-}
-// Other
+#include "types.h" // Datatypes
+#include "vars.h" // Variable tools
+#include "cfunc.h" // Core functions
+
+#ifndef MJLISP_H
+#define MJLISP_H
 void print_var(var_t *v)
 {
 	switch (v->type) {
@@ -191,30 +97,19 @@ datatype infer_type(char *input)
 		default: return ERROR;
 	}
 }
-void print_type_of(char *input)
+var_t *apply_function(var_t *function,var_t *args)
 {
-	datatype type=infer_type(input);
-	switch (type) {
-		case SPECIAL: printf("SPECIAL\n");
-			      break;
-		case VOID: printf("VOID\n");
-			   break;
-		case VARIABLE: printf("VARIABLE\n");
-			       break;
-		case INT: printf("INT\n");
-			  break;
-		case FLOAT: printf("FLOAT\n");
-			    break;
-		case CHAR: printf("CHAR\n");
-			   break;
-		case SYMBOL: printf("SYMBOL\n");
-			     break;
-		case CELL: printf("CELL\n");
-			   break;
-		case FUNCTION: printf("FUNCTION\n");
-			       break;
-		default: printf("%i",type);
-	}
+	assert(args->type==CELL||args->type==VOID);
+	if (function==CAR)
+		return car(car(args));
+	if (function==CDR)
+		return cdr(car(args));
+	if (function==CONS)
+		return cons(car(args),car(cdr(args)));
+	if (function==ADD)
+		return add(car(args),car(cdr(args)));
+	assert(function->type==FUNCTION);
+	return NULL; // To-do: Create lexical binding, then eval
 }
 var_t *eval(char *str);
 var_t *to_var(char *str)
@@ -248,20 +143,6 @@ var_t *to_var(char *str)
 		case CELL: return eval(str);
 	}
 }
-var_t *apply_function(var_t *function,var_t *args)
-{
-	assert(args->type==CELL||args->type==VOID);
-	if (function==CAR)
-		return car(car(args));
-	if (function==CDR)
-		return cdr(car(args));
-	if (function==CONS)
-		return cons(car(args),car(cdr(args)));
-	if (function==ADD)
-		return add(car(args),car(cdr(args)));
-	assert(function->type==FUNCTION);
-	return NULL; // To-do: Create lexical binding, then eval
-}
 var_t *eval(char *str)
 {
 	// To-do: Refactor into multiple functions
@@ -288,7 +169,7 @@ var_t *eval(char *str)
 			parens--;
 		}
 		if (parens==1&&*c==' '||parens==0) {
-			list=cons(NEW(var_t),list);
+			list=cons(malloc(sizeof(var_t)),list);
 			marker--;
 			strncpy(token,c+1,marker-c);
 			token[marker-c]='\0';
