@@ -219,9 +219,6 @@ void print_type_of(char *input)
 var_t *eval(char *str);
 var_t *to_var(char *str)
 {
-	printf("|%s| ",str);
-	print_type_of(str);
-
 	if (!strcasecmp("CAR",str))
 		return CAR;
 	if (!strcasecmp("CDR",str))
