@@ -14,6 +14,8 @@ var_t CDR_FUN={.type=SPECIAL,.data.s="CDR"};
 var_t *CDR=&CDR_FUN;
 var_t CONS_FUN={.type=SPECIAL,.data.s="CONS"};
 var_t *CONS=&CONS_FUN;
+var_t DISPLAY_FUN={.type=SPECIAL,.data.s="DISPLAY"};
+var_t *DISPLAY=&DISPLAY_FUN;
 var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
 var_t *LAMBDA=&LAMBDA_FUN;
 var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
@@ -44,6 +46,13 @@ var_t *new_svar(char *s)
 	var_t *v=NEW(var_t);
 	v->type=SYMBOL;
 	v->data.s=s;
+	return v;
+}
+var_t *new_lvar(var_t *l)
+{
+	var_t *v=NEW(var_t);
+	v->type=CELL;
+	v->data.l=l->data.l;
 	return v;
 }
 #endif

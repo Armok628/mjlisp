@@ -23,6 +23,38 @@ var_t *cdr(var_t *var)
 	assert(var->type==CELL);
 	return var->data.l->cdr;
 }
+var_t *display(var_t *v)
+{
+	switch (v->type) {
+		case SPECIAL: printf("%s",v->data.s);
+			      return NIL;
+		case VOID: printf("NIL");
+			   return NIL;
+		case INT: printf("%i",v->data.i);
+			  return NIL;
+		case FLOAT: printf("%f",v->data.f);
+			    return NIL;
+		case CHAR: printf("\\%c",v->data.c);
+			   return NIL;
+		case SYMBOL: printf("%s",v->data.s);
+			     return NIL;
+		case CELL: break;
+		case FUNCTION: printf("#FUNCTION%i",v);
+			       return NIL;
+	}
+	putchar('(');
+	for (;v->type==CELL&&cdr(v);v=cdr(v)) {
+		display(car(v));
+		putchar(' ');
+	}
+	if (v&&v->type!=VOID) {
+		printf(". ");
+		display(v);
+		putchar(' ');
+	}
+	printf("\e[D)");
+	return NIL;
+}
 var_t *add(var_t *v1,var_t *v2)
 {
 	assert(v1->type==INT||v1->type==FLOAT);

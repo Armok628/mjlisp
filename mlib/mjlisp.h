@@ -1,5 +1,4 @@
 // To-do:
-// Split this file into multiple files
 // Finish adding core functions
 // Implement a dictionary system (assoc list) and definitions
 // Implement lexical bindings (Idea: cons assoc list to global environment)
@@ -16,37 +15,6 @@
 
 #ifndef MJLISP_H
 #define MJLISP_H
-void print_var(var_t *v)
-{
-	switch (v->type) {
-		case SPECIAL: printf("%s",v->data.s);
-			      return;
-		case VOID: printf("NIL");
-			   return;
-		case INT: printf("%i",v->data.i);
-			  return;
-		case FLOAT: printf("%f",v->data.f);
-			    return;
-		case CHAR: printf("\\%c",v->data.c);
-			   return;
-		case SYMBOL: printf("%s",v->data.s);
-			     return;
-		case CELL: break;
-		case FUNCTION: printf("#FUNCTION%i",v);
-			       return;
-	}
-	putchar('(');
-	for (;v->type==CELL&&cdr(v);v=cdr(v)) {
-		print_var(car(v));
-		putchar(' ');
-	}
-	if (v&&v->type!=VOID) {
-		printf(". ");
-		print_var(v);
-		putchar(' ');
-	}
-	printf("\e[D)");
-}
 datatype infer_type(char *input)
 {
 	if (!strcasecmp("NIL",input))
@@ -54,6 +22,7 @@ datatype infer_type(char *input)
 	if (!strcasecmp("CAR",input)
 			||!strcasecmp("CDR",input)
 			||!strcasecmp("CONS",input)
+			||!strcasecmp("DISPLAY",input)
 			||!strcasecmp("LAMBDA",input)
 			||!strcasecmp("ADD",input))
 		return SPECIAL;
@@ -106,6 +75,13 @@ var_t *apply_function(var_t *function,var_t *args)
 		return cdr(car(args));
 	if (function==CONS)
 		return cons(car(args),car(cdr(args)));
+	if (function==DISPLAY)
+		return display(car(args));
+	if (function==LAMBDA) {
+		var_t *fun=new_lvar(cons(car(args),cdr(args)));
+		fun->type=FUNCTION;
+		return fun;
+	}
 	if (function==ADD)
 		return add(car(args),car(cdr(args)));
 	assert(function->type==FUNCTION);
@@ -120,6 +96,8 @@ var_t *to_var(char *str)
 		return CDR;
 	if (!strcasecmp("CONS",str))
 		return CONS;
+	if (!strcasecmp("DISPLAY",str))
+		return DISPLAY;
 	if (!strcasecmp("LAMBDA",str))
 		return LAMBDA;
 	if (!strcasecmp("ADD",str))
