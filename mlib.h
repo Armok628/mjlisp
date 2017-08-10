@@ -1,4 +1,9 @@
-// To-do: Split this file into multiple files
+// To-do:
+// Split this file into multiple files
+// Finish adding core functions
+// Implement a dictionary system (assoc list) and definitions
+// Implement lexical bindings (Idea: cons assoc list to global environment)
+// Implement lambda functions (using lexical bindings)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -211,7 +216,7 @@ void print_type_of(char *input)
 		default: printf("%i",type);
 	}
 }
-var_t *interpret_list(char *str);
+var_t *eval(char *str);
 var_t *to_var(char *str)
 {
 	if (!strcasecmp("CAR",str))
@@ -239,38 +244,8 @@ var_t *to_var(char *str)
 		case SYMBOL: s=malloc(strlen(str));
 			     strcpy(s,str);
 			     return new_svar(s);
-		case CELL: return interpret_list(str);
+		case CELL: return eval(str);
 	}
-}
-var_t *interpret_list(char *str)
-{
-	var_t *list=NIL;
-	int parens=0;
-	char *start=str,*token=malloc(64);
-	for (;*str;str++);
-	str--;
-	char *marker=str;
-	for (char *c=str;c>=start;c--) {
-		if (*c==')')
-			parens++;
-		else if (*c=='(') {
-			parens--;
-		}
-		if (parens==1&&*c==' '||parens==0) {
-			list=cons(NEW(var_t),list);
-			marker--;
-			strncpy(token,c+1,marker-c);
-			token[marker-c]='\0';
-			marker=c;
-			//printf("|%s| ",token);
-			//print_type_of(token);
-			list->data.l->car=to_var(token);
-			if (parens==0)
-				break;
-		}
-	}
-	free(token);
-	return list;
 }
 var_t *apply_function(var_t *function,var_t *args)
 {
@@ -307,5 +282,39 @@ var_t *apply_function(var_t *function,var_t *args)
 	}
 	assert(i==argc);
 	// What to do next?
+}
+var_t *eval(char *str)
+{
+	var_t *list=NIL;
+	int parens=0;
+	char *start=str,*token=malloc(64);
+	for (;*str;str++);
+	str--;
+	char *marker=str;
+	for (char *c=str;c>=start;c--) {
+		if (*c==')')
+			parens++;
+		else if (*c=='(') {
+			parens--;
+		}
+		if (parens==1&&*c==' '||parens==0) {
+			list=cons(NEW(var_t),list);
+			marker--;
+			strncpy(token,c+1,marker-c);
+			token[marker-c]='\0';
+			marker=c;
+			//printf("|%s| ",token);
+			//print_type_of(token);
+			list->data.l->car=to_var(token);
+			if (parens==0)
+				break;
+		}
+	}
+	free(token);
+	//printf("%c\n",*start);
+	if (*start=='\'')
+		return list;
+	else
+		return apply_function(car(list),cdr(list));
 }
 #endif
