@@ -219,6 +219,9 @@ void print_type_of(char *input)
 var_t *eval(char *str);
 var_t *to_var(char *str)
 {
+	printf("|%s| ",str);
+	print_type_of(str);
+
 	if (!strcasecmp("CAR",str))
 		return CAR;
 	if (!strcasecmp("CDR",str))
@@ -229,7 +232,7 @@ var_t *to_var(char *str)
 		return LAMBDA;
 	if (!strcasecmp("ADD",str))
 		return ADD;
-	int i;
+	int i,q;
 	float f;
 	char *s;
 	switch (infer_type(str)) {
@@ -241,8 +244,9 @@ var_t *to_var(char *str)
 			  return new_fvar(f);
 		case CHAR: return new_cvar(*++str);
 		/**/ case VARIABLE: /**/
-		case SYMBOL: s=malloc(strlen(str));
-			     strcpy(s,str);
+		case SYMBOL: q=*str=='\'';
+			     s=malloc(strlen(str)-q);
+			     strcpy(s,str+q);
 			     return new_svar(s);
 		case CELL: return eval(str);
 	}
@@ -250,48 +254,37 @@ var_t *to_var(char *str)
 var_t *apply_function(var_t *function,var_t *args)
 {
 	assert(args->type==CELL||args->type==VOID);
-	if (function==CAR) {
-		assert(cdr(args)==NIL);
+	if (function==CAR)
 		return car(car(args));
-	}
-	if (function==CDR) {
-		assert(cdr(args)==NIL);
+	if (function==CDR)
 		return cdr(car(args));
-	}
-	if (function==CONS) {
-		assert(cdr(cdr(args))==NIL);
+	if (function==CONS)
 		return cons(car(args),car(cdr(args)));
-	}
-	if (function==ADD) {
-		assert(cdr(cdr(args))==NIL);
+	if (function==ADD)
 		return add(car(args),car(cdr(args)));
-	}
 	assert(function->type==FUNCTION);
-	// Nothing after this line has been tested.
-	int argc=0;
-	for (var_t *v=car(cdr(function));v->type==CELL&&cdr(v);v=cdr(v))
-		argc++;
-	var_t **argv=malloc(argc*sizeof(var_t *));
-	int i=0;
-	var_t *vn=car(cdr(function));
-	for (var_t *va=args;va->type==CELL&&cdr(va);va=cdr(va)) {
-		assert(i<=argc);
-		argv[i]=cons(vn,va);
-		i++;
-		vn=cdr(vn);
-	}
-	assert(i==argc);
-	// What to do next?
+	return NULL; // To-do: Create lexical binding, then eval
 }
 var_t *eval(char *str)
 {
+	// To-do: Refactor into multiple functions
+	// read-from-string and eval
 	var_t *list=NIL;
 	int parens=0;
-	char *start=str,*token=malloc(64);
+	char *start=str,*token=malloc(strlen(str));
 	for (;*str;str++);
 	str--;
 	char *marker=str;
 	for (char *c=str;c>=start;c--) {
+		if (list==NIL&&parens==1&&*c==' '&&*(c-1)=='.') {
+			marker--;
+			strncpy(token,c+1,marker-c);
+			token[marker-c]='\0';
+			list=to_var(token);
+			c-=2;
+			marker=c;
+			continue;
+		}
 		if (*c==')')
 			parens++;
 		else if (*c=='(') {
@@ -302,16 +295,13 @@ var_t *eval(char *str)
 			marker--;
 			strncpy(token,c+1,marker-c);
 			token[marker-c]='\0';
-			marker=c;
-			//printf("|%s| ",token);
-			//print_type_of(token);
 			list->data.l->car=to_var(token);
+			marker=c;
 			if (parens==0)
 				break;
 		}
 	}
 	free(token);
-	//printf("%c\n",*start);
 	if (*start=='\'')
 		return list;
 	else
