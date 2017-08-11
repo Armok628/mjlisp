@@ -16,41 +16,45 @@ var_t *cons(var_t *var1,var_t *var2)
 }
 var_t *car(var_t *var)
 {
-	assert(var->type==CELL);
+	assert(var->type==CELL||var->type==QUOTE);
 	return var->data.l->car;
 }
 var_t *cdr(var_t *var)
 {
-	assert(var->type==CELL);
+	assert(var->type==CELL||var->type==QUOTE);
 	return var->data.l->cdr;
 }
-var_t *display(var_t *v)
+var_t *display(var_t *var)
 {
-	switch (v->type) {
-		case SPECIAL: printf("%s",v->data.s);
+	switch (var->type) {
+		case VARIABLE:
+		case SPECIAL: printf("%s",var->data.s);
 			      return NIL;
 		case VOID: printf("NIL");
 			   return NIL;
-		case INT: printf("%i",v->data.i);
+		case INT: printf("%i",var->data.i);
 			  return NIL;
-		case FLOAT: printf("%f",v->data.f);
+		case FLOAT: printf("%f",var->data.f);
 			    return NIL;
-		case CHAR: printf("\\%c",v->data.c);
+		case CHAR: printf("\\%c",var->data.c);
 			   return NIL;
-		case SYMBOL: printf("%s",v->data.s);
+		case SYMBOL: printf("%s",var->data.s);
 			     return NIL;
-		case CELL: break;
-		case FUNCTION: printf("#FUNCTION%i",v);
+		case FUNCTION: printf("#FUNCTION%i",var);
 			       return NIL;
+		case QUOTE:
+		case CELL: break;
+		default: printf("ERROR");
+			 return NULL;
 	}
 	putchar('(');
-	for (;v->type==CELL&&cdr(v);v=cdr(v)) {
-		display(car(v));
+	for (;var->type==CELL||var->type==QUOTE&&cdr(var);var=cdr(var)) {
+		display(car(var));
 		putchar(' ');
 	}
-	if (v&&v->type!=VOID) {
+	if (var&&var->type!=VOID) {
 		printf(". ");
-		display(v);
+		display(var);
 		putchar(' ');
 	}
 	printf("\e[D)");
@@ -64,9 +68,13 @@ var_t *eq(var_t *v1,var_t *v2)
 		return v1==v2||!strcmp(v1->data.s,v2->data.s)?T:NIL;
 	if (v1->type==VOID&&v2->type==VOID)
 		return T;
-	if (v1->type!=CELL)
+	if (v1->type!=CELL&&v1->type!=QUOTE)
 		return v1->data.i==v2->data.i?T:NIL;
 	return NIL;
+}
+var_t *atom(var_t *var)
+{
+	return var->type==CELL||var->type==QUOTE?NIL:T;
 }
 var_t *add(var_t *v1,var_t *v2)
 {

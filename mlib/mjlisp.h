@@ -24,6 +24,7 @@ datatype infer_type(char *input)
 			||!strcasecmp("CONS",input)
 			||!strcasecmp("DISPLAY",input)
 			||!strcasecmp("EQ",input)
+			||!strcasecmp("ATOM",input)
 			||!strcasecmp("DEFINE",input)
 			||!strcasecmp("LAMBDA",input)
 			||!strcasecmp("ADD",input))
@@ -49,7 +50,7 @@ datatype infer_type(char *input)
 				return VOID;
 			for (;*input;input++);
 			if (*(input-1)==')')
-				return CELL;
+				return QUOTE;
 			else
 				return ERROR;
 		} else
@@ -94,6 +95,8 @@ var_t *apply_function(var_t *function,var_t *args)
 		return display(car(args));
 	if (function==EQ)
 		return eq(car(args),car(cdr(args)));
+	if (function==ATOM)
+		return atom(car(args));
 	if (function==DEFINE) {
 		ENV=cons(cons(car(args),car(cdr(args))),ENV);
 		car(car(ENV))->type=VARIABLE;
@@ -108,10 +111,10 @@ var_t *apply_function(var_t *function,var_t *args)
 	if (function==ADD)
 		return add(car(args),car(cdr(args)));
 	assert(function->type==FUNCTION);
-	return NULL; // To-do: Create lexical binding, then eval
+	return NULL; // To-do: Create lexical binding, then read
 }
-var_t *eval(char *str);
-var_t *to_var(char *str,var_t *env)
+var_t *read(char *str);
+var_t *to_var(char *str)
 {
 	if (!strcasecmp("CAR",str))
 		return CAR;
@@ -123,6 +126,8 @@ var_t *to_var(char *str,var_t *env)
 		return DISPLAY;
 	if (!strcasecmp("EQ",str))
 		return EQ;
+	if (!strcasecmp("ATOM",str))
+		return ATOM;
 	if (!strcasecmp("DEFINE",str))
 		return DEFINE;
 	if (!strcasecmp("LAMBDA",str))
@@ -132,6 +137,7 @@ var_t *to_var(char *str,var_t *env)
 	int i,q;
 	float f;
 	char *s;
+	var_t *v;
 	switch (infer_type(str)) {
 		case VOID: return NIL;
 		case INT: sscanf(str,"%i",&i);
@@ -143,17 +149,21 @@ var_t *to_var(char *str,var_t *env)
 		case SYMBOL: q=*str=='\'';
 			     s=malloc(strlen(str)-q);
 			     strcpy(s,str+q);
-			     if (q)
-				     return new_svar(s);
-			     else
-				     return reference(new_svar(s),env);
-		case CELL: return eval(str);
+			     var_t *sym=new_svar(s);
+			     if (!q)
+				     sym->type=VARIABLE;
+  			     return sym;
+		case QUOTE: v=read(str+1);
+			    v->type=QUOTE;
+			    return v;
+		case CELL: return read(str);
 	}
 }
-var_t *eval(char *str)
+var_t *read(char *str)
 {
-	if (infer_type(str)!=CELL)
-		return to_var(str,ENV);
+	datatype t=infer_type(str);
+	if (t!=CELL&&t!=QUOTE)
+		return to_var(str);
 	var_t *list=NIL;
 	int parens=0;
 	char *start=str,*token=malloc(strlen(str));
@@ -165,7 +175,7 @@ var_t *eval(char *str)
 			marker--;
 			strncpy(token,c+1,marker-c);
 			token[marker-c]='\0';
-			list=to_var(token,ENV);
+			list=to_var(token);
 			c-=2;
 			marker=c;
 			continue;
@@ -180,16 +190,36 @@ var_t *eval(char *str)
 			marker--;
 			strncpy(token,c+1,marker-c);
 			token[marker-c]='\0';
-			list->data.l->car=to_var(token,ENV);
+			list->data.l->car=to_var(token);
 			marker=c;
 			if (parens==0)
 				break;
 		}
 	}
 	free(token);
-	if (*start=='\'')
-		return list;
-	else
-		return apply_function(car(list),cdr(list));
+	list->type=t;
+	return list;
+}
+var_t *eval(var_t *form,var_t *env);
+var_t *eval_all(var_t *list,var_t *env)
+{
+	assert(list->type==CELL||list->type==VOID);
+	if (!env)
+		env=NIL;
+	if (list->type==VOID)
+		return NIL;
+	return cons(eval(car(list),env),eval_all(cdr(list),env));
+}
+var_t *eval(var_t *form,var_t *env)
+{
+	if (!env)
+		env=NIL;
+	if (form->type==QUOTE)
+		return form;// Temporary solution
+	if (car(form)->type==CELL)
+		return eval_all(form,env);
+	if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
+		return apply_function(car(form),eval_all(cdr(form),env));
+	return form;
 }
 #endif

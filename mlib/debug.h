@@ -22,6 +22,8 @@ void print_type(datatype type)
 			     break;
 		case CELL: printf("CELL\n");
 			   break;
+		case QUOTE: printf("QUOTE\n");
+			    break;
 		case FUNCTION: printf("FUNCTION\n");
 			       break;
 		default: printf("%i",type);

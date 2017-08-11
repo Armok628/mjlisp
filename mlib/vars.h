@@ -20,6 +20,8 @@ var_t DISPLAY_FUN={.type=SPECIAL,.data.s="DISPLAY"};
 var_t *DISPLAY=&DISPLAY_FUN;
 var_t EQ_FUN={.type=SPECIAL,.data.s="EQ"};
 var_t *EQ=&EQ_FUN;
+var_t ATOM_FUN={.type=SPECIAL,.data.s="ATOM"};
+var_t *ATOM=&ATOM_FUN;
 var_t DEFINE_FUN={.type=SPECIAL,.data.s="DEFINE"};
 var_t *DEFINE=&DEFINE_FUN;
 var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
