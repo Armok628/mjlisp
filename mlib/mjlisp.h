@@ -203,7 +203,8 @@ var_t *read(char *str)
 var_t *eval(var_t *form,var_t *env);
 var_t *eval_all(var_t *list,var_t *env)
 {
-	assert(list->type==CELL||list->type==VOID);
+	if (list->type!=CELL||list->type!=QUOTE||list->type!=VOID)
+		return list;
 	if (!env)
 		env=NIL;
 	if (list->type==VOID)
@@ -214,12 +215,16 @@ var_t *eval(var_t *form,var_t *env)
 {
 	if (!env)
 		env=NIL;
-	if (form->type==QUOTE)
-		return form;// Temporary solution
-	if (car(form)->type==CELL)
-		return eval_all(form,env);
-	if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
-		return apply_function(car(form),eval_all(cdr(form),env));
+	if (form->type==QUOTE) {
+		var_t *v=eval_all(form,env);
+		v->type=QUOTE;
+		return v;
+	}
+	if (form->type==CELL)
+		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
+			return apply_function(car(form),eval_all(cdr(form),env));
+		else
+			return eval_all(form,env);
 	return form;
 }
 #endif
