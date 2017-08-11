@@ -230,6 +230,8 @@ var_t *eval(var_t *form,var_t *env)
 {
 	if (!env)
 		env=NIL;
+	if (form->type==VARIABLE)
+		return reference(form,env);
 	if (form->type==QUOTE) {
 		var_t *v=eval_all(form,env);
 		v->type=QUOTE;
