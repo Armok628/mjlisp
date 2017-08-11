@@ -215,8 +215,11 @@ var_t *eval_all(var_t *list,var_t *env)
 {
 	if (list->type==VOID)
 		return NIL;
-	if (list->type!=CELL&&list->type!=QUOTE)
+	if (list->type!=CELL&&list->type!=QUOTE) {
+		if (list->type==VARIABLE)
+			return reference(list,env);
 		return list;
+	}
 	if (car(list)->type==CELL||car(list)->type==QUOTE)
 		return cons(eval(car(list),env),eval_all(cdr(list),env));
 	if (car(list)->type==VARIABLE)
