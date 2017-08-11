@@ -82,36 +82,47 @@ var_t *reference(var_t *term,var_t *env)
 			return cdr(car(env));
 	return NIL;
 }
-var_t *apply_function(var_t *function,var_t *args)
+var_t *eval(var_t *form,var_t *env);
+var_t *apply_function(var_t *func,var_t *args,var_t *env)
 {
 	assert(args->type==CELL||args->type==VOID);
-	if (function==CAR)
+	// To-do: Covnert to switch case
+	if (func==CAR)
 		return car(car(args));
-	if (function==CDR)
+	if (func==CDR)
 		return cdr(car(args));
-	if (function==CONS)
+	if (func==CONS)
 		return cons(car(args),car(cdr(args)));
-	if (function==DISPLAY)
+	if (func==DISPLAY)
 		return display(car(args));
-	if (function==EQ)
+	if (func==EQ)
 		return eq(car(args),car(cdr(args)));
-	if (function==ATOM)
+	if (func==ATOM)
 		return atom(car(args));
-	if (function==DEFINE) {
+	if (func==DEFINE) {
 		ENV=cons(cons(car(args),car(cdr(args))),ENV);
 		car(car(ENV))->type=VARIABLE;
 		car(args)->type=SYMBOL;
 		return car(args);
 	}
-	if (function==LAMBDA) {
+	if (func==LAMBDA) {
 		var_t *fun=cons(car(args),cdr(args));
 		fun->type=FUNCTION;
 		return fun;
 	}
-	if (function==ADD)
+	if (func==ADD)
 		return add(car(args),car(cdr(args)));
-	assert(function->type==FUNCTION);
-	return NULL; // To-do: Create lexical binding, then read
+	assert(func->type==FUNCTION);
+	/*
+	// Untested below here
+	var_t *lex=env;
+	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) {
+		lex=cons(cons(car(v),car(args)),lex);
+		args=cdr(args);
+	}
+	assert(args->type==VOID);
+	return eval(cdr(func),lex);
+	*/
 }
 var_t *read(char *str);
 var_t *to_var(char *str)
@@ -200,16 +211,17 @@ var_t *read(char *str)
 	list->type=t;
 	return list;
 }
-var_t *eval(var_t *form,var_t *env);
 var_t *eval_all(var_t *list,var_t *env)
 {
-	if (list->type!=CELL||list->type!=QUOTE||list->type!=VOID)
-		return list;
-	if (!env)
-		env=NIL;
 	if (list->type==VOID)
 		return NIL;
-	return cons(eval(car(list),env),eval_all(cdr(list),env));
+	if (list->type!=CELL&&list->type!=QUOTE)
+		return list;
+	if (car(list)->type==CELL||car(list)->type==QUOTE)
+		return cons(eval(car(list),env),eval_all(cdr(list),env));
+	if (car(list)->type==VARIABLE)
+		return cons(reference(car(list),env),eval_all(cdr(list),env));
+	return cons(car(list),eval_all(cdr(list),env));
 }
 var_t *eval(var_t *form,var_t *env)
 {
@@ -222,7 +234,7 @@ var_t *eval(var_t *form,var_t *env)
 	}
 	if (form->type==CELL)
 		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
-			return apply_function(car(form),eval_all(cdr(form),env));
+			return apply_function(car(form),eval_all(cdr(form),env),env);
 		else
 			return eval_all(form,env);
 	return form;
