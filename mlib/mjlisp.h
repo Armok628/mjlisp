@@ -81,15 +81,18 @@ var_t *reference(var_t *term,var_t **env)
 	return NIL;
 }
 var_t *eval(var_t *form,var_t **env);
-var_t *eval_all(var_t *list,var_t **env);
+var_t *subst(var_t *list,var_t **env);
 #include "debug.h" //////////////////////////////
 var_t *copy(var_t *var)
 {
 	if (var->type==VOID||var->type==SPECIAL)
 		return var;
-	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION)
-		return cons(copy(car(var)),copy(cdr(var)));
 	var_t *c=NEW(var_t);
+	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION) {
+		c=cons(copy(car(var)),copy(cdr(var)));
+		c->type=var->type;
+		return c;
+	}
 	c->type=var->type;
 	if (var->type==SYMBOL||var->type==VARIABLE) {
 		c->data.s=malloc(strlen(var->data.s));
@@ -115,7 +118,6 @@ void destroy(var_t *var)
 var_t *apply(var_t *function,var_t *args,var_t **env)
 {
 	static var_t *func;
-	destroy(func);
 	assert(args->type==CELL||args->type==VOID);
 	// To-do: Convert to switch case
 	if (function==CAR)
@@ -139,8 +141,9 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	}
 	if (function==ADD)
 		return add(car(args),car(cdr(args)));
-	assert(function->type==FUNCTION);
 	///////////////////////////
+	assert(function->type==FUNCTION);
+	destroy(func);
 	func=copy(function);
 	var_t *lex=*env;
 	printf("ARGS: "); debug_display(args); terpri();
@@ -151,7 +154,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		args=cdr(args);
 	}
 	assert(args->type==VOID);
-	printf("ENVIRONMENT: "); debug_display(lex); terpri();
+	printf("LEXICAL ENV: "); debug_display(lex); terpri();
 	return eval(car(cdr(func)),&lex);
 }
 var_t *read(char *str);
@@ -245,9 +248,9 @@ var_t *read(char *str)
 	list->type=t;
 	return list;
 }
-var_t *eval_all(var_t *list,var_t **env)
+var_t *subst(var_t *list,var_t **env)
 {
-	//printf("EVAL_ALL "); debug_display(list); terpri();
+	//printf("SUB_VARS "); debug_display(list); terpri();
 	if (list->type==VOID)
 		return NIL;
 	if (list->type!=CELL&&list->type!=QUOTE) {
@@ -256,10 +259,10 @@ var_t *eval_all(var_t *list,var_t **env)
 		return list;
 	}
 	if (car(list)->type==CELL||car(list)->type==QUOTE)
-		return cons(eval(car(list),env),eval_all(cdr(list),env));
+		return cons(eval(car(list),env),subst(cdr(list),env));
 	if (car(list)->type==VARIABLE)
-		return cons(reference(car(list),env),eval_all(cdr(list),env));
-	return cons(car(list),eval_all(cdr(list),env));
+		return cons(reference(car(list),env),subst(cdr(list),env));
+	return cons(car(list),subst(cdr(list),env));
 }
 var_t *eval(var_t *form,var_t **env)
 {
@@ -269,19 +272,19 @@ var_t *eval(var_t *form,var_t **env)
 	if (form->type==VARIABLE)
 		return reference(form,env);
 	if (form->type==QUOTE) {
-		var_t *v=eval_all(form,env);
+		var_t *v=subst(form,env);
 		v->type=QUOTE;
 		return v;
 	}
 	if (form->type==CELL) {
 		if (car(form)->type==VARIABLE)
 			form->data.l->car=reference(car(form),env);
-		form->data.l->cdr=eval_all(cdr(form),env);
+		form->data.l->cdr=subst(cdr(form),env);
 		printf("APPLY: "); debug_display(form); terpri();
 		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
-			return apply(car(form),eval_all(cdr(form),env),env);
+			return apply(car(form),subst(cdr(form),env),env);
 		else
-			return eval_all(form,env);
+			return subst(form,env);
 	}
 	return form;
 }
