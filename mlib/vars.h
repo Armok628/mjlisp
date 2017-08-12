@@ -26,6 +26,8 @@ var_t DEFINE_FUN={.type=SPECIAL,.data.s="DEFINE"};
 var_t *DEFINE=&DEFINE_FUN;
 var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
 var_t *LAMBDA=&LAMBDA_FUN;
+var_t PROGN_FUN={.type=SPECIAL,.data.s="PROGN"};
+var_t *PROGN=&PROGN_FUN;
 var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
 var_t *ADD=&ADD_FUN;
 var_t *ENV;

@@ -22,6 +22,7 @@ datatype infer_type(char *input)
 			||!strcasecmp("EQ",input)
 			||!strcasecmp("ATOM",input)
 			||!strcasecmp("DEFINE",input)
+			||!strcasecmp("PROGN",input)
 			||!strcasecmp("LAMBDA",input)
 			||!strcasecmp("ADD",input))
 		return SPECIAL;
@@ -141,6 +142,12 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	}
 	if (function==ADD)
 		return add(car(args),car(cdr(args)));
+	if (function==PROGN) {
+		var_t *v=args;
+		for (;v->type==CELL&&cdr(v)!=NIL;v=cdr(v))
+			eval(car(v),env);
+		return eval(car(v),env);
+	}
 	///////////////////////////
 	assert(function->type==FUNCTION);
 	destroy(func);
@@ -174,6 +181,8 @@ var_t *to_var(char *str)
 		return ATOM;
 	if (!strcasecmp("DEFINE",str))
 		return DEFINE;
+	if (!strcasecmp("PROGN",str))
+		return PROGN;
 	if (!strcasecmp("LAMBDA",str))
 		return LAMBDA;
 	if (!strcasecmp("ADD",str))
@@ -209,48 +218,54 @@ var_t *to_var(char *str)
 }
 var_t *read(char *str)
 {
+	// to-do: Change to left to right
+	
 	datatype t=infer_type(str);
 	if (t!=CELL&&t!=QUOTE&&t!=FUNCTION)
 		return to_var(str);
-	var_t *list=NIL;
+	var_t *end=cons(NULL,NIL),*start=end;
 	int parens=0;
-	char *start=str,*token=malloc(strlen(str));
-	for (;*str;str++);
-	str--;
-	char *marker=str;
-	for (char *c=str;c>=start;c--) {
-		if (list==NIL&&parens==1&&*c==' '&&*(c-1)=='.') {
-			marker--;
-			strncpy(token,c+1,marker-c);
-			token[marker-c]='\0';
-			list=to_var(token);
-			c-=2;
-			marker=c;
-			continue;
+	char *token=malloc(strlen(str)),*marker=str;
+	for (char *c=str;*c;c++) {
+		if (parens==1&&*c=='.'&&*(c+1)==' ') {
+			marker=c+2;
+			for (;*c!=')';c++);
+			strncpy(token,marker,c-marker);
+			token[c-marker]='\0';
+			end->data.l->cdr=to_var(token);
+			//printf("|%s| ",token); debug_display(cdr(end)); terpri();
+			break;
 		}
-		if (*c==')')
+		if (*c=='(')
 			parens++;
-		else if (*c=='(') {
+		else if (*c==')') {
 			parens--;
 		}
 		if (parens==1&&*c==' '||parens==0) {
-			list=cons(malloc(sizeof(var_t)),list);
-			marker--;
-			strncpy(token,c+1,marker-c);
-			token[marker-c]='\0';
-			list->data.l->car=to_var(token);
+			strncpy(token,marker+1,c-marker-1);
+			token[c-marker-1]='\0';
+			if (car(start)) {
+				end->data.l->cdr=cons(NIL,NIL);
+				end=cdr(end);
+				end->data.l->car=to_var(token);
+			} else {
+				start->data.l->car=to_var(token);
+			}
+			//printf("|%s| ",token); debug_display(car(end)); terpri();
 			marker=c;
 			if (parens==0)
 				break;
 		}
 	}
+	end=NIL;
 	free(token);
-	list->type=t;
-	return list;
+	start->type=t;
+	debug_display(start);
+	return start;
 }
 var_t *subst(var_t *list,var_t **env)
 {
-	//printf("SUB_VARS "); debug_display(list); terpri();
+	//printf("SUBST "); debug_display(list); terpri();
 	if (list->type==VOID)
 		return NIL;
 	if (list->type!=CELL&&list->type!=QUOTE) {
