@@ -83,8 +83,39 @@ var_t *reference(var_t *term,var_t **env)
 var_t *eval(var_t *form,var_t **env);
 var_t *eval_all(var_t *list,var_t **env);
 #include "debug.h" //////////////////////////////
+var_t *copy(var_t *var)
+{
+	if (var->type==VOID||var->type==SPECIAL)
+		return var;
+	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION)
+		return cons(copy(car(var)),copy(cdr(var)));
+	var_t *c=NEW(var_t);
+	c->type=var->type;
+	if (var->type==SYMBOL||var->type==VARIABLE) {
+		c->data.s=malloc(strlen(var->data.s));
+		strcpy(c->data.s,var->data.s);
+	} else
+		c->data=var->data;
+	return c;
+}
+void destroy(var_t *var)
+{
+	if (!var)
+		return;
+	if (var->type==VOID||var->type==SPECIAL)
+		return;
+	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION) {
+		destroy(car(var));
+		destroy(cdr(var));
+		free(var->data.l);
+	} else if (var->type==SYMBOL||var->type==VARIABLE)
+		free(var->data.s);
+	free(var);
+}
 var_t *apply(var_t *function,var_t *args,var_t **env)
 {
+	static var_t *func;
+	destroy(func);
 	assert(args->type==CELL||args->type==VOID);
 	// To-do: Convert to switch case
 	if (function==CAR)
@@ -110,8 +141,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return add(car(args),car(cdr(args)));
 	assert(function->type==FUNCTION);
 	///////////////////////////
-	var_t *func=cons(car(function),cdr(function));
-	func->type=FUNCTION;
+	func=copy(function);
 	var_t *lex=*env;
 	printf("ARGS: "); debug_display(args); terpri();
 	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) {

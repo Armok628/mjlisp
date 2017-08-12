@@ -89,6 +89,7 @@ var_t *terpri()
 	putchar('\n');
 	return NIL;
 }
+// Arithmetic
 var_t *add(var_t *v1,var_t *v2)
 {
 	assert(v1->type==INT||v1->type==FLOAT);
