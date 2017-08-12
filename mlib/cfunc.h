@@ -1,5 +1,7 @@
 // Lisp core functions
 
+// To-do: Other arithmetic, terpri, apply, if/cond, label
+
 #include "types.h" // Datatypes
 #include "vars.h" // Variable tools
 
@@ -16,12 +18,18 @@ var_t *cons(var_t *var1,var_t *var2)
 }
 var_t *car(var_t *var)
 {
-	assert(var->type==CELL||var->type==QUOTE);
+	assert(var->type==CELL||var->type==QUOTE
+			||var->type==VOID||var->type==FUNCTION);
+	if (var==NIL)
+		return NIL;
 	return var->data.l->car;
 }
 var_t *cdr(var_t *var)
 {
-	assert(var->type==CELL||var->type==QUOTE);
+	assert(var->type==CELL||var->type==QUOTE
+			||var->type==VOID||var->type==FUNCTION);
+	if (var==NIL)
+		return NIL;
 	return var->data.l->cdr;
 }
 var_t *display(var_t *var)
@@ -40,7 +48,7 @@ var_t *display(var_t *var)
 			   return NIL;
 		case SYMBOL: printf("%s",var->data.s);
 			     return NIL;
-		case FUNCTION: printf("#FUNCTION%i",var);
+		case FUNCTION: printf("#FUNCTION-%i",var);
 			       return NIL;
 		case QUOTE:
 		case CELL: break;
@@ -75,6 +83,11 @@ var_t *eq(var_t *v1,var_t *v2)
 var_t *atom(var_t *var)
 {
 	return var->type==CELL||var->type==QUOTE?NIL:T;
+}
+var_t *terpri()
+{
+	putchar('\n');
+	return NIL;
 }
 var_t *add(var_t *v1,var_t *v2)
 {

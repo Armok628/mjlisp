@@ -51,7 +51,7 @@ var_t *debug_display(var_t *var)
 		case SYMBOL: printf("%s",var->data.s);
        			     putchar('['); print_type(var->type); putchar(']');
 			     return NIL;
-		case FUNCTION: printf("#FUNCTION%i",var);
+		case FUNCTION: printf("#FUNCTION-%i",var);
 	 		       putchar('['); print_type(var->type); putchar(']');
 			       return NIL;
 		case QUOTE:
@@ -61,8 +61,8 @@ var_t *debug_display(var_t *var)
 	}
 	datatype type=var->type;
 	putchar('(');
-	for (;var->type==CELL||var->type==QUOTE&&cdr(var);var=cdr(var)) {
-		debug_display(car(var));
+	for (;var->type==CELL||var->type==QUOTE&&var->data.l->cdr;var=var->data.l->cdr) {
+		debug_display(var->data.l->car);
 		putchar(' ');
 	}
 	if (var&&var->type!=VOID) {
