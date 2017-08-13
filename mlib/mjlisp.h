@@ -118,9 +118,18 @@ void destroy(var_t *var)
 }
 var_t *apply(var_t *function,var_t *args,var_t **env)
 {
+	printf("APPLY "); debug_display(function); printf(" TO "); debug_display(args); terpri();
+	printf("ENVIRONMENT: "); debug_display(ENV); terpri();
 	static var_t *func;
 	assert(args->type==CELL||args->type==VOID);
 	// To-do: Convert to switch case
+	if (function==PROGN) {
+		var_t *v=args;
+		for (;v->type==CELL&&cdr(v)!=NIL;v=cdr(v))
+			eval(subst(car(v),env),env);
+		return eval(subst(car(v),env),env);
+	} else
+		args=subst(args,env);
 	if (function==CAR)
 		return car(car(args));
 	if (function==CDR)
@@ -137,17 +146,11 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		assert(car(args)->type==SYMBOL);
 		*env=cons(cons(car(args),car(cdr(args))),*env);
 		car(args)->type=SYMBOL;
-		printf("ENVIRONMENT "); debug_display(ENV); terpri();
+		printf("NEW ENV: "); debug_display(ENV); terpri();
 		return car(args);
 	}
 	if (function==ADD)
 		return add(car(args),car(cdr(args)));
-	if (function==PROGN) {
-		var_t *v=args;
-		for (;v->type==CELL&&cdr(v)!=NIL;v=cdr(v))
-			eval(car(v),env);
-		return eval(car(v),env);
-	}
 	///////////////////////////
 	assert(function->type==FUNCTION);
 	destroy(func);
@@ -265,7 +268,7 @@ var_t *read(char *str)
 }
 var_t *subst(var_t *list,var_t **env)
 {
-	//printf("SUBST "); debug_display(list); terpri();
+	printf("SUBST "); debug_display(list); terpri();
 	if (list->type==VOID)
 		return NIL;
 	if (list->type!=CELL&&list->type!=QUOTE) {
@@ -294,10 +297,9 @@ var_t *eval(var_t *form,var_t **env)
 	if (form->type==CELL) {
 		if (car(form)->type==VARIABLE)
 			form->data.l->car=reference(car(form),env);
-		form->data.l->cdr=subst(cdr(form),env);
-		printf("APPLY: "); debug_display(form); terpri();
+		//form->data.l->cdr=subst(cdr(form),env);
 		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
-			return apply(car(form),subst(cdr(form),env),env);
+			return apply(car(form),cdr(form),env);
 		else
 			return subst(form,env);
 	}
