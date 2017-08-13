@@ -221,8 +221,6 @@ var_t *to_var(char *str)
 }
 var_t *read(char *str)
 {
-	// to-do: Change to left to right
-	
 	datatype t=infer_type(str);
 	if (t!=CELL&&t!=QUOTE&&t!=FUNCTION)
 		return to_var(str);
@@ -297,7 +295,6 @@ var_t *eval(var_t *form,var_t **env)
 	if (form->type==CELL) {
 		if (car(form)->type==VARIABLE)
 			form->data.l->car=reference(car(form),env);
-		//form->data.l->cdr=subst(cdr(form),env);
 		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
 			return apply(car(form),cdr(form),env);
 		else
