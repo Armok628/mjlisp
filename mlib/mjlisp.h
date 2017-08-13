@@ -119,7 +119,7 @@ void destroy(var_t *var)
 var_t *apply(var_t *function,var_t *args,var_t **env)
 {
 	printf("APPLY "); debug_display(function); printf(" TO "); debug_display(args); terpri();
-	printf("ENVIRONMENT: "); debug_display(ENV); terpri();
+	printf("ENVIRONMENT: "); debug_display(*env); terpri();
 	static var_t *func;
 	assert(args->type==CELL||args->type==VOID);
 	// To-do: Convert to switch case
@@ -146,7 +146,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		assert(car(args)->type==SYMBOL);
 		*env=cons(cons(car(args),car(cdr(args))),*env);
 		car(args)->type=SYMBOL;
-		printf("NEW ENV: "); debug_display(ENV); terpri();
+		printf("NEW ENV: "); debug_display(*env); terpri();
 		return car(args);
 	}
 	if (function==ADD)

@@ -30,7 +30,7 @@ var_t PROGN_FUN={.type=SPECIAL,.data.s="PROGN"};
 var_t *PROGN=&PROGN_FUN;
 var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
 var_t *ADD=&ADD_FUN;
-var_t *ENV;
+var_t **ENV=&NIL;
 var_t *new_ivar(int i)
 {
 	var_t *v=NEW(var_t);

@@ -9,7 +9,7 @@ int main(int argc,char **argv)
 		fgets(input,255,stdin);
 		for (c=input;*c;c++);
 		*(c-1)='\0';
-		display(eval(read(input),&ENV));
+		display(eval(read(input),ENV));
 		putchar('\n');
 	}
 	return 0;
