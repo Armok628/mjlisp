@@ -261,7 +261,7 @@ var_t *read(char *str)
 	end=NIL;
 	free(token);
 	start->type=t;
-	debug_display(start);
+	printf("READ: "); debug_display(start); terpri();
 	return start;
 }
 var_t *subst(var_t *list,var_t **env)
