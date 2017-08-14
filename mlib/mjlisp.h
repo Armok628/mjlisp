@@ -11,8 +11,10 @@
 
 #ifndef MJLISP_H
 #define MJLISP_H
+#include "debug.h" //////////////////////////////
 datatype infer_type(char *input)
 {
+	printf("INFER_TYPE\n");
 	if (!strcasecmp("NIL",input))
 		return VOID;
 	if (!strcasecmp("CAR",input)
@@ -70,22 +72,24 @@ datatype infer_type(char *input)
 }
 var_t *reference(var_t *term,var_t **env)
 {
+	printf("REFERENCE\n");
+	printf("ENV: "); debug_display(*env); terpri();
 	if (!*env) {
 		*env=NIL;
 		return NIL;
 	}
 	if (term->type==VARIABLE)
 		term->type=SYMBOL;
-	for (;(*env)->type==CELL&&cdr(*env);*env=cdr(*env))
-		if (eq(term,car(car(*env)))==T)
-			return cdr(car(*env));
+	for (var_t *e=*env;e->type==CELL&&cdr(e);e=cdr(e))
+		if (eq(term,car(car(e)))==T)
+			return cdr(car(e));
 	return NIL;
 }
 var_t *eval(var_t *form,var_t **env);
 var_t *subst(var_t *list,var_t **env);
-#include "debug.h" //////////////////////////////
 var_t *copy(var_t *var)
 {
+	printf("COPY\n");
 	if (var->type==VOID||var->type==SPECIAL)
 		return var;
 	var_t *c=NEW(var_t);
@@ -104,6 +108,7 @@ var_t *copy(var_t *var)
 }
 void destroy(var_t *var)
 {
+	printf("DESTROY\n");
 	if (!var)
 		return;
 	if (var->type==VOID||var->type==SPECIAL)
@@ -119,8 +124,9 @@ void destroy(var_t *var)
 var_t *apply(var_t *function,var_t *args,var_t **env)
 {
 	printf("APPLY "); debug_display(function); printf(" TO "); debug_display(args); terpri();
-	printf("ENVIRONMENT: "); debug_display(*env); terpri();
+	printf("ENV: "); debug_display(*env); terpri();
 	static var_t *func;
+	assert(function!=NIL);
 	assert(args->type==CELL||args->type==VOID);
 	// To-do: Convert to switch case
 	if (function==PROGN) {
@@ -170,6 +176,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 var_t *read(char *str);
 var_t *to_var(char *str)
 {
+	printf("TO_VAR\n");
 	if (!strcasecmp("CAR",str))
 		return CAR;
 	if (!strcasecmp("CDR",str))
@@ -221,6 +228,7 @@ var_t *to_var(char *str)
 }
 var_t *read(char *str)
 {
+	printf("READ\n");
 	datatype t=infer_type(str);
 	if (t!=CELL&&t!=QUOTE&&t!=FUNCTION)
 		return to_var(str);
@@ -267,6 +275,7 @@ var_t *read(char *str)
 var_t *subst(var_t *list,var_t **env)
 {
 	printf("SUBST "); debug_display(list); terpri();
+	printf("ENV: "); debug_display(*env); terpri();
 	if (list->type==VOID)
 		return NIL;
 	if (list->type!=CELL&&list->type!=QUOTE) {
@@ -282,7 +291,10 @@ var_t *subst(var_t *list,var_t **env)
 }
 var_t *eval(var_t *form,var_t **env)
 {
+	if (!*env)
+		*env=NIL;
 	printf("EVAL "); debug_display(form); terpri();
+	printf("ENV: "); debug_display(*env); terpri();
 	if (!*env)
 		*env=NIL;
 	if (form->type==VARIABLE)
