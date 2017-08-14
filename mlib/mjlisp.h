@@ -117,9 +117,7 @@ var_t *copy(var_t *var)
 void destroy(var_t *var)
 {
 	////printf("DESTROY "); debug_display(var); terpri();
-	if (!var)
-		return;
-	if (var->type==VOID||var->type==SPECIAL)
+	if (!var||var->type==VOID||var->type==SPECIAL||var->type==FUNCTION)
 		return;
 	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION) {
 		destroy(car(var));
@@ -194,7 +192,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	//printf("LEXICAL ENV: "); debug_display(lex); terpri();
 	var_t *result=eval(car(cdr(func)),&lex);
 	//printf("DESTROY "); debug_display(func); terpri();
-	//destroy(func);
+	destroy(func);
 	return result;
 }
 var_t *read(char *str);
