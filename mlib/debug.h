@@ -35,25 +35,25 @@ var_t *debug_display(var_t *var)
 		case VARIABLE:
 		case SPECIAL: printf("%s",var->data.s);
 			      putchar('['); print_type(var->type); putchar(']');
-			      return NIL;
+			      return &NIL;
 		case VOID: printf("NIL");
      			   putchar('['); print_type(var->type); putchar(']');
-			   return NIL;
+			   return &NIL;
 		case INT: printf("%i",var->data.i);
     			  putchar('['); print_type(var->type); putchar(']');
-			  return NIL;
+			  return &NIL;
 		case FLOAT: printf("%f",var->data.f);
       			    putchar('['); print_type(var->type); putchar(']');
-			    return NIL;
+			    return &NIL;
 		case CHAR: printf("\\%c",var->data.c);
      			   putchar('['); print_type(var->type); putchar(']');
-			   return NIL;
+			   return &NIL;
 		case SYMBOL: printf("%s",var->data.s);
        			     putchar('['); print_type(var->type); putchar(']');
-			     return NIL;
+			     return &NIL;
 		case FUNCTION: printf("#FUNCTION-%x",var);
 	 		       putchar('['); print_type(var->type); putchar(']');
-			       return NIL;
+			       return &NIL;
 		case QUOTE:
 		case CELL: break;
 		default: printf("ERROR");
@@ -72,6 +72,6 @@ var_t *debug_display(var_t *var)
 	}
 	printf("\e[D)");
 	putchar('['); print_type(type); putchar(']');
-	return NIL;
+	return &NIL;
 }
 #endif
