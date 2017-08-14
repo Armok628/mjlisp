@@ -28,6 +28,8 @@ var_t LAMBDA_FUN={.type=SPECIAL,.data.s="LAMBDA"};
 var_t *LAMBDA=&LAMBDA_FUN;
 var_t PROGN_FUN={.type=SPECIAL,.data.s="PROGN"};
 var_t *PROGN=&PROGN_FUN;
+var_t TERPRI_FUN={.type=SPECIAL,.data.s="TERPRI"};
+var_t *TERPRI=&TERPRI_FUN;
 var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
 var_t *ADD=&ADD_FUN;
 var_t *ENV;

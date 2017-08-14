@@ -11,10 +11,10 @@
 
 #ifndef MJLISP_H
 #define MJLISP_H
-#include "debug.h" //////////////////////////////
+//#include "debug.h" //////////////////////////////
 datatype infer_type(char *input)
 {
-	printf("INFER_TYPE\n");
+	//printf("INFER_TYPE\n");
 	if (!strcasecmp("NIL",input))
 		return VOID;
 	if (!strcasecmp("CAR",input)
@@ -26,6 +26,7 @@ datatype infer_type(char *input)
 			||!strcasecmp("DEFINE",input)
 			||!strcasecmp("PROGN",input)
 			||!strcasecmp("LAMBDA",input)
+			||!strcasecmp("TERPRI",input)
 			||!strcasecmp("ADD",input))
 		return SPECIAL;
 	if (*input=='(') {
@@ -72,8 +73,8 @@ datatype infer_type(char *input)
 }
 var_t *reference(var_t *term,var_t **env)
 {
-	printf("REFERENCE\n");
-	printf("ENV: "); debug_display(*env); terpri();
+	//printf("REFERENCE\n");
+	//printf("ENV: "); debug_display(*env); terpri();
 	if (!*env) {
 		*env=NIL;
 		return NIL;
@@ -89,7 +90,7 @@ var_t *eval(var_t *form,var_t **env);
 var_t *subst(var_t *list,var_t **env);
 var_t *copy(var_t *var)
 {
-	printf("COPY\n");
+	//printf("COPY\n");
 	if (var->type==VOID||var->type==SPECIAL)
 		return var;
 	var_t *c=NEW(var_t);
@@ -108,7 +109,7 @@ var_t *copy(var_t *var)
 }
 void destroy(var_t *var)
 {
-	printf("DESTROY\n");
+	//printf("DESTROY\n");
 	if (!var)
 		return;
 	if (var->type==VOID||var->type==SPECIAL)
@@ -123,12 +124,10 @@ void destroy(var_t *var)
 }
 var_t *apply(var_t *function,var_t *args,var_t **env)
 {
-	printf("APPLY "); debug_display(function); printf(" TO "); debug_display(args); terpri();
-	printf("ENV: "); debug_display(*env); terpri();
-	static var_t *func;
+	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
+	//printf("ENV: "); debug_display(*env); terpri();
 	assert(function!=NIL);
 	assert(args->type==CELL||args->type==VOID);
-	// To-do: Convert to switch case
 	if (function==PROGN) {
 		var_t *v=args;
 		for (;v->type==CELL&&cdr(v)!=NIL;v=cdr(v))
@@ -152,31 +151,33 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		assert(car(args)->type==SYMBOL);
 		*env=cons(cons(car(args),car(cdr(args))),*env);
 		car(args)->type=SYMBOL;
-		printf("NEW ENV: "); debug_display(*env); terpri();
+		//printf("NEW ENV: "); debug_display(*env); terpri();
 		return car(args);
 	}
+	if (function==TERPRI)
+		return terpri();
 	if (function==ADD)
 		return add(car(args),car(cdr(args)));
-	///////////////////////////
 	assert(function->type==FUNCTION);
-	destroy(func);
-	func=copy(function);
+	var_t *func=copy(function);
 	var_t *lex=*env;
-	printf("ARGS: "); debug_display(args); terpri();
+	//printf("ARGS: "); debug_display(args); terpri();
 	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) {
-		printf("BINDING "); debug_display(car(v)); printf(" TO "); debug_display(car(args)); terpri();
+		//printf("BINDING "); debug_display(car(v)); //printf(" TO "); debug_display(car(args)); terpri();
 		lex=cons(cons(car(v),car(args)),lex);
 		car(v)->type=SYMBOL;
 		args=cdr(args);
 	}
 	assert(args->type==VOID);
-	printf("LEXICAL ENV: "); debug_display(lex); terpri();
-	return eval(car(cdr(func)),&lex);
+	//printf("LEXICAL ENV: "); debug_display(lex); terpri();
+	var_t *result=eval(car(cdr(func)),&lex);
+	destroy(func);
+	return result;
 }
 var_t *read(char *str);
 var_t *to_var(char *str)
 {
-	printf("TO_VAR\n");
+	//printf("TO_VAR\n");
 	if (!strcasecmp("CAR",str))
 		return CAR;
 	if (!strcasecmp("CDR",str))
@@ -195,6 +196,8 @@ var_t *to_var(char *str)
 		return PROGN;
 	if (!strcasecmp("LAMBDA",str))
 		return LAMBDA;
+	if (!strcasecmp("TERPRI",str))
+		return TERPRI;
 	if (!strcasecmp("ADD",str))
 		return ADD;
 	int i,q;
@@ -228,7 +231,7 @@ var_t *to_var(char *str)
 }
 var_t *read(char *str)
 {
-	printf("READ\n");
+	//printf("READ\n");
 	datatype t=infer_type(str);
 	if (t!=CELL&&t!=QUOTE&&t!=FUNCTION)
 		return to_var(str);
@@ -242,7 +245,7 @@ var_t *read(char *str)
 			strncpy(token,marker,c-marker);
 			token[c-marker]='\0';
 			end->data.l->cdr=to_var(token);
-			//printf("|%s| ",token); debug_display(cdr(end)); terpri();
+			////printf("|%s| ",token); debug_display(cdr(end)); terpri();
 			break;
 		}
 		if (*c=='(')
@@ -260,7 +263,7 @@ var_t *read(char *str)
 			} else {
 				start->data.l->car=to_var(token);
 			}
-			//printf("|%s| ",token); debug_display(car(end)); terpri();
+			////printf("|%s| ",token); debug_display(car(end)); terpri();
 			marker=c;
 			if (parens==0)
 				break;
@@ -269,13 +272,13 @@ var_t *read(char *str)
 	end=NIL;
 	free(token);
 	start->type=t;
-	printf("READ: "); debug_display(start); terpri();
+	//printf("READ: "); debug_display(start); terpri();
 	return start;
 }
 var_t *subst(var_t *list,var_t **env)
 {
-	printf("SUBST "); debug_display(list); terpri();
-	printf("ENV: "); debug_display(*env); terpri();
+	//printf("SUBST "); debug_display(list); terpri();
+	//printf("ENV: "); debug_display(*env); terpri();
 	if (list->type==VOID)
 		return NIL;
 	if (list->type!=CELL&&list->type!=QUOTE) {
@@ -293,8 +296,8 @@ var_t *eval(var_t *form,var_t **env)
 {
 	if (!*env)
 		*env=NIL;
-	printf("EVAL "); debug_display(form); terpri();
-	printf("ENV: "); debug_display(*env); terpri();
+	//printf("EVAL "); debug_display(form); terpri();
+	//printf("ENV: "); debug_display(*env); terpri();
 	if (!*env)
 		*env=NIL;
 	if (form->type==VARIABLE)
