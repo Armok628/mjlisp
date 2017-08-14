@@ -36,7 +36,7 @@ var_t *display(var_t *var)
 		case VARIABLE:
 		case SPECIAL: printf("%s",var->data.s);
 			      return &NIL;
-		case VOID: printf("&NIL");
+		case VOID: printf("NIL");
 			   return &NIL;
 		case INT: printf("%i",var->data.i);
 			  return &NIL;

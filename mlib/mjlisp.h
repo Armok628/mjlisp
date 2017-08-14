@@ -32,7 +32,11 @@ datatype infer_type(char *input)
 			||!strcmp("+",input)
 			||!strcmp("-",input)
 			||!strcmp("*",input)
-			||!strcmp("/",input))
+			||!strcmp("/",input)
+			||!strcmp(">",input)
+			||!strcmp("<",input)
+			||!strcasecmp("AND",input)
+			||!strcasecmp("OR",input))
 		return SPECIAL;
 	if (*input=='(') {
 		if (*(input+1)==')')
@@ -144,6 +148,12 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 			return eval(car(cdr(args)),env);
 		return eval(car(cdr(cdr(args))),env);
 	}
+	if (function==&AND||function==&OR) {
+		for (var_t *v=args;v->type==CELL&&cdr(v);v=cdr(v))
+			if ((function==&AND)^(eval(car(v),env)!=&NIL))
+				return function==&OR?&T:&NIL;
+		return function==&AND?&T:&NIL;
+	}
 	args=subst(args,env);
 	if (function==&CAR)
 		return car(car(args));
@@ -178,6 +188,10 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return arith(car(args),car(cdr(args)),'*');
 	if (function==&DIV)
 		return arith(car(args),car(cdr(args)),'/');
+	if (function==&GREATER)
+		return car(args)->data.i>car(cdr(args))->data.i?&T:&NIL;
+	if (function==&LESS)
+		return car(args)->data.i<car(cdr(args))->data.i?&T:&NIL;
 	assert(function->type==FUNCTION);
 	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
@@ -231,6 +245,14 @@ var_t *to_var(char *str)
 		return &MUL;
 	if (!strcmp("/",str))
 		return &DIV;
+	if (!strcmp(">",str))
+		return &GREATER;
+	if (!strcmp("<",str))
+		return &LESS;
+	if (!strcasecmp("AND",str))
+		return &AND;
+	if (!strcasecmp("OR",str))
+		return &OR;
 	int i,q;
 	float f;
 	char *s;
