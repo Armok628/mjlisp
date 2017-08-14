@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mlib/mjlisp.h"
-#include "mlib/debug.h"
 int main(int argc,char **argv)
 {
 	char *input=malloc(256),*c;

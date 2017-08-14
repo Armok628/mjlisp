@@ -11,7 +11,7 @@
 
 #ifndef MJLISP_H
 #define MJLISP_H
-//#include "debug.h" //////////////////////////////
+//#include "debug.h"
 datatype infer_type(char *input)
 {
 	//printf("INFER_TYPE\n");
@@ -27,6 +27,8 @@ datatype infer_type(char *input)
 			||!strcasecmp("PROGN",input)
 			||!strcasecmp("LAMBDA",input)
 			||!strcasecmp("TERPRI",input)
+			||!strcasecmp("IF",input)
+			||!strcasecmp("EVAL",input)
 			||!strcasecmp("ADD",input))
 		return SPECIAL;
 	if (*input=='(') {
@@ -156,12 +158,20 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	}
 	if (function==TERPRI)
 		return terpri();
+	if (function==IF) {
+		if (eval(car(args),env)!=NIL)
+			return eval(car(cdr(args)),env);
+		return eval(car(cdr(cdr(args))),env);
+	}
+	if (function==EVAL) {
+		car(args)->type=CELL;
+		return eval(car(args),env);
+	}
 	if (function==ADD)
 		return add(car(args),car(cdr(args)));
 	assert(function->type==FUNCTION);
 	var_t *func=copy(function);
 	var_t *lex=*env;
-	//printf("ARGS: "); debug_display(args); terpri();
 	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) {
 		//printf("BINDING "); debug_display(car(v)); //printf(" TO "); debug_display(car(args)); terpri();
 		lex=cons(cons(car(v),car(args)),lex);
@@ -198,7 +208,11 @@ var_t *to_var(char *str)
 		return LAMBDA;
 	if (!strcasecmp("TERPRI",str))
 		return TERPRI;
-	if (!strcasecmp("ADD",str))
+	if (!strcasecmp("IF",str))
+		return IF;
+	if (!strcasecmp("EVAL",str))
+		return EVAL;
+	if (!strcasecmp("ADD",str)||!strcmp("+",str))
 		return ADD;
 	int i,q;
 	float f;
