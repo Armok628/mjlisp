@@ -140,8 +140,13 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		for (;v->type==CELL&&cdr(v)!=NIL;v=cdr(v))
 			eval(subst(car(v),env),env);
 		return eval(subst(car(v),env),env);
-	} else
-		args=subst(args,env);
+	}
+	if (function==IF) {
+		if (eval(car(args),env)!=NIL)
+			return eval(car(cdr(args)),env);
+		return eval(car(cdr(cdr(args))),env);
+	}
+	args=subst(args,env);
 	if (function==CAR)
 		return car(car(args));
 	if (function==CDR)
@@ -163,23 +168,18 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	}
 	if (function==TERPRI)
 		return terpri();
-	if (function==IF) {
-		if (eval(car(args),env)!=NIL)
-			return eval(car(cdr(args)),env);
-		return eval(car(cdr(cdr(args))),env);
-	}
 	if (function==EVAL) {
 		car(args)->type=CELL;
 		return eval(car(args),env);
 	}
 	if (function==ADD)
-		return arith(eval(car(args),env),eval(car(cdr(args)),env),'+');
+		return arith(car(args),car(cdr(args)),'+');
 	if (function==SUB)
-		return arith(eval(car(args),env),eval(car(cdr(args)),env),'-');
+		return arith(car(args),car(cdr(args)),'-');
 	if (function==MUL)
-		return arith(eval(car(args),env),eval(car(cdr(args)),env),'*');
+		return arith(car(args),car(cdr(args)),'*');
 	if (function==DIV)
-		return arith(eval(car(args),env),eval(car(cdr(args)),env),'/');
+		return arith(car(args),car(cdr(args)),'/');
 	assert(function->type==FUNCTION);
 	var_t *func=copy(function);
 	var_t *lex=*env;
