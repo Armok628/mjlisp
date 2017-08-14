@@ -36,8 +36,7 @@ datatype infer_type(char *input)
 			||!strcmp(">",input)
 			||!strcmp("<",input)
 			||!strcasecmp("AND",input)
-			||!strcasecmp("OR",input)
-			||!strcasecmp("NOT",input))
+			||!strcasecmp("OR",input))
 		return SPECIAL;
 	if (*input=='(') {
 		if (*(input+1)==')')
@@ -193,8 +192,6 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return car(args)->data.i>car(cdr(args))->data.i?&T:&NIL;
 	if (function==&LESS)
 		return car(args)->data.i<car(cdr(args))->data.i?&T:&NIL;
-	if (function==&NOT)
-		return car(args)==&NIL?&T:&NIL;
 	assert(function->type==FUNCTION);
 	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
@@ -256,8 +253,6 @@ var_t *to_var(char *str)
 		return &AND;
 	if (!strcasecmp("OR",str))
 		return &OR;
-	if (!strcasecmp("NOT",str))
-		return &NOT;
 	int i,q;
 	float f;
 	char *s;

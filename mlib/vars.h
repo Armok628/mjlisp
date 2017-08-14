@@ -28,7 +28,6 @@ var_t GREATER={.type=SPECIAL,.data.s=">"};
 var_t LESS={.type=SPECIAL,.data.s="<"};
 var_t AND={.type=SPECIAL,.data.s="AND"};
 var_t OR={.type=SPECIAL,.data.s="OR"};
-var_t NOT={.type=SPECIAL,.data.s="NOT"};
 var_t *ENV;
 var_t *new_ivar(int i)
 {
