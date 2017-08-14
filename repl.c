@@ -10,6 +10,7 @@ int main(int argc,char **argv)
 		*(c-1)='\0';
 		display(eval(read(input),&ENV));
 		putchar('\n');
+		putchar('\n');
 	}
 	return 0;
 }
