@@ -46,7 +46,7 @@ var_t *display(var_t *var)
 			   return NIL;
 		case SYMBOL: printf("%s",var->data.s);
 			     return NIL;
-		case FUNCTION: printf("#FUNCTION-%i",var);
+		case FUNCTION: printf("#FUNCTION-%x",var);
 			       return NIL;
 		case QUOTE:
 		case CELL: break;

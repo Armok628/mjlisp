@@ -51,7 +51,7 @@ var_t *debug_display(var_t *var)
 		case SYMBOL: printf("%s",var->data.s);
        			     putchar('['); print_type(var->type); putchar(']');
 			     return NIL;
-		case FUNCTION: printf("#FUNCTION-%i",var);
+		case FUNCTION: printf("#FUNCTION-%x",var);
 	 		       putchar('['); print_type(var->type); putchar(']');
 			       return NIL;
 		case QUOTE:

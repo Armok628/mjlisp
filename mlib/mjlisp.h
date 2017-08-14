@@ -97,7 +97,7 @@ var_t *eval(var_t *form,var_t **env);
 var_t *subst(var_t *list,var_t **env);
 var_t *copy(var_t *var)
 {
-	//printf("COPY\n");
+	////printf("COPY\n");
 	if (var->type==VOID||var->type==SPECIAL)
 		return var;
 	var_t *c=NEW(var_t);
@@ -116,7 +116,7 @@ var_t *copy(var_t *var)
 }
 void destroy(var_t *var)
 {
-	//printf("DESTROY\n");
+	////printf("DESTROY "); debug_display(var); terpri();
 	if (!var)
 		return;
 	if (var->type==VOID||var->type==SPECIAL)
@@ -181,6 +181,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	if (function==DIV)
 		return arith(car(args),car(cdr(args)),'/');
 	assert(function->type==FUNCTION);
+	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
 	var_t *lex=*env;
 	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) {
@@ -192,7 +193,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	assert(args->type==VOID);
 	//printf("LEXICAL ENV: "); debug_display(lex); terpri();
 	var_t *result=eval(car(cdr(func)),&lex);
-	destroy(func);
+	//printf("DESTROY "); debug_display(func); terpri();
+	//destroy(func);
 	return result;
 }
 var_t *read(char *str);
