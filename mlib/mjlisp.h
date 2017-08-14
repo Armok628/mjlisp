@@ -83,15 +83,15 @@ var_t *reference(var_t *term,var_t **env)
 	//printf("REFERENCE\n");
 	//printf("ENV: "); debug_display(*env); terpri();
 	if (!*env) {
-		*env=NIL;
-		return NIL;
+		*env=&NIL;
+		return &NIL;
 	}
 	if (term->type==VARIABLE)
 		term->type=SYMBOL;
 	for (var_t *e=*env;e->type==CELL&&cdr(e);e=cdr(e))
-		if (eq(term,car(car(e)))==T)
+		if (eq(term,car(car(e)))==&T)
 			return cdr(car(e));
-	return NIL;
+	return &NIL;
 }
 var_t *eval(var_t *form,var_t **env);
 var_t *subst(var_t *list,var_t **env);
@@ -131,52 +131,52 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 {
 	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
-	assert(function!=NIL);
+	assert(function!=&NIL);
 	assert(args->type==CELL||args->type==VOID);
-	if (function==PROGN) {
+	if (function==&PROGN) {
 		var_t *v=args;
-		for (;v->type==CELL&&cdr(v)!=NIL;v=cdr(v))
+		for (;v->type==CELL&&cdr(v)!=&NIL;v=cdr(v))
 			eval(subst(car(v),env),env);
 		return eval(subst(car(v),env),env);
 	}
-	if (function==IF) {
-		if (eval(car(args),env)!=NIL)
+	if (function==&IF) {
+		if (eval(car(args),env)!=&NIL)
 			return eval(car(cdr(args)),env);
 		return eval(car(cdr(cdr(args))),env);
 	}
 	args=subst(args,env);
-	if (function==CAR)
+	if (function==&CAR)
 		return car(car(args));
-	if (function==CDR)
+	if (function==&CDR)
 		return cdr(car(args));
-	if (function==CONS)
+	if (function==&CONS)
 		return cons(car(args),car(cdr(args)));
-	if (function==DISPLAY)
+	if (function==&DISPLAY)
 		return display(car(args));
-	if (function==EQ)
+	if (function==&EQ)
 		return eq(car(args),car(cdr(args)));
-	if (function==ATOM)
+	if (function==&ATOM)
 		return atom(car(args));
-	if (function==DEFINE) {
+	if (function==&DEFINE) {
 		assert(car(args)->type==SYMBOL);
 		*env=cons(cons(car(args),car(cdr(args))),*env);
 		car(args)->type=SYMBOL;
 		//printf("NEW ENV: "); debug_display(*env); terpri();
 		return car(args);
 	}
-	if (function==TERPRI)
+	if (function==&TERPRI)
 		return terpri();
-	if (function==EVAL) {
+	if (function==&EVAL) {
 		car(args)->type=CELL;
 		return eval(car(args),env);
 	}
-	if (function==ADD)
+	if (function==&ADD)
 		return arith(car(args),car(cdr(args)),'+');
-	if (function==SUB)
+	if (function==&SUB)
 		return arith(car(args),car(cdr(args)),'-');
-	if (function==MUL)
+	if (function==&MUL)
 		return arith(car(args),car(cdr(args)),'*');
-	if (function==DIV)
+	if (function==&DIV)
 		return arith(car(args),car(cdr(args)),'/');
 	assert(function->type==FUNCTION);
 	//printf("COPY "); debug_display(function); terpri();
@@ -200,43 +200,43 @@ var_t *to_var(char *str)
 {
 	//printf("TO_VAR\n");
 	if (!strcasecmp("CAR",str))
-		return CAR;
+		return &CAR;
 	if (!strcasecmp("CDR",str))
-		return CDR;
+		return &CDR;
 	if (!strcasecmp("CONS",str))
-		return CONS;
+		return &CONS;
 	if (!strcasecmp("DISPLAY",str))
-		return DISPLAY;
+		return &DISPLAY;
 	if (!strcasecmp("EQ",str))
-		return EQ;
+		return &EQ;
 	if (!strcasecmp("ATOM",str))
-		return ATOM;
+		return &ATOM;
 	if (!strcasecmp("DEFINE",str))
-		return DEFINE;
+		return &DEFINE;
 	if (!strcasecmp("PROGN",str))
-		return PROGN;
+		return &PROGN;
 	if (!strcasecmp("LAMBDA",str))
-		return LAMBDA;
+		return &LAMBDA;
 	if (!strcasecmp("TERPRI",str))
-		return TERPRI;
+		return &TERPRI;
 	if (!strcasecmp("IF",str))
-		return IF;
+		return &IF;
 	if (!strcasecmp("EVAL",str))
-		return EVAL;
+		return &EVAL;
 	if (!strcmp("+",str))
-		return ADD;
+		return &ADD;
 	if (!strcmp("-",str))
-		return SUB;
+		return &SUB;
 	if (!strcmp("*",str))
-		return MUL;
+		return &MUL;
 	if (!strcmp("/",str))
-		return DIV;
+		return &DIV;
 	int i,q;
 	float f;
 	char *s;
 	var_t *v;
 	switch (infer_type(str)) {
-		case VOID: return NIL;
+		case VOID: return &NIL;
 		case INT: sscanf(str,"%i",&i);
 			  return new_ivar(i);
 		case FLOAT: sscanf(str,"%f",&f);
@@ -266,7 +266,7 @@ var_t *read(char *str)
 	datatype t=infer_type(str);
 	if (t!=CELL&&t!=QUOTE&&t!=FUNCTION)
 		return to_var(str);
-	var_t *end=cons(NULL,NIL),*start=end;
+	var_t *end=cons(NULL,&NIL),*start=end;
 	int parens=0;
 	char *token=malloc(strlen(str)),*marker=str;
 	for (char *c=str;*c;c++) {
@@ -288,7 +288,7 @@ var_t *read(char *str)
 			strncpy(token,marker+1,c-marker-1);
 			token[c-marker-1]='\0';
 			if (car(start)) {
-				end->data.l->cdr=cons(NIL,NIL);
+				end->data.l->cdr=cons(&NIL,&NIL);
 				end=cdr(end);
 				end->data.l->car=to_var(token);
 			} else {
@@ -300,7 +300,7 @@ var_t *read(char *str)
 				break;
 		}
 	}
-	end=NIL;
+	end=&NIL;
 	free(token);
 	start->type=t;
 	//printf("READ: "); debug_display(start); terpri();
@@ -311,7 +311,7 @@ var_t *subst(var_t *list,var_t **env)
 	//printf("SUBST "); debug_display(list); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
 	if (list->type==VOID)
-		return NIL;
+		return &NIL;
 	if (list->type!=CELL&&list->type!=QUOTE) {
 		if (list->type==VARIABLE)
 			return reference(list,env);
@@ -326,11 +326,11 @@ var_t *subst(var_t *list,var_t **env)
 var_t *eval(var_t *form,var_t **env)
 {
 	if (!*env)
-		*env=NIL;
+		*env=&NIL;
 	//printf("EVAL "); debug_display(form); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
 	if (!*env)
-		*env=NIL;
+		*env=&NIL;
 	if (form->type==VARIABLE)
 		return reference(form,env);
 	if (form->type==QUOTE) {

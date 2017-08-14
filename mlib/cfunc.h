@@ -11,23 +11,23 @@ var_t *cons(var_t *var1,var_t *var2)
 	c->type=CELL;
 	c->data.l=NEW(cell_t);
 	c->data.l->car=var1;
-	c->data.l->cdr=var2?var2:NIL;
+	c->data.l->cdr=var2?var2:&NIL;
 	return c;
 }
 var_t *car(var_t *var)
 {
 	assert(var->type==CELL||var->type==QUOTE
 			||var->type==VOID||var->type==FUNCTION);
-	if (var==NIL)
-		return NIL;
+	if (var==&NIL)
+		return &NIL;
 	return var->data.l->car;
 }
 var_t *cdr(var_t *var)
 {
 	assert(var->type==CELL||var->type==QUOTE
 			||var->type==VOID||var->type==FUNCTION);
-	if (var==NIL)
-		return NIL;
+	if (var==&NIL)
+		return &NIL;
 	return var->data.l->cdr;
 }
 var_t *display(var_t *var)
@@ -35,19 +35,19 @@ var_t *display(var_t *var)
 	switch (var->type) {
 		case VARIABLE:
 		case SPECIAL: printf("%s",var->data.s);
-			      return NIL;
-		case VOID: printf("NIL");
-			   return NIL;
+			      return &NIL;
+		case VOID: printf("&NIL");
+			   return &NIL;
 		case INT: printf("%i",var->data.i);
-			  return NIL;
+			  return &NIL;
 		case FLOAT: printf("%f",var->data.f);
-			    return NIL;
+			    return &NIL;
 		case CHAR: printf("\\%c",var->data.c);
-			   return NIL;
+			   return &NIL;
 		case SYMBOL: printf("%s",var->data.s);
-			     return NIL;
+			     return &NIL;
 		case FUNCTION: printf("#FUNCTION-%x",var);
-			       return NIL;
+			       return &NIL;
 		case QUOTE:
 		case CELL: break;
 		default: printf("ERROR");
@@ -64,28 +64,28 @@ var_t *display(var_t *var)
 		putchar(' ');
 	}
 	printf("\e[D)");
-	return NIL;
+	return &NIL;
 }
 var_t *eq(var_t *v1,var_t *v2)
 {
 	if (v1->type!=v2->type)
-		return NIL;
+		return &NIL;
 	if (v1->type==SYMBOL||v1->type==VARIABLE)
-		return v1==v2||!strcmp(v1->data.s,v2->data.s)?T:NIL;
+		return v1==v2||!strcmp(v1->data.s,v2->data.s)?&T:&NIL;
 	if (v1->type==VOID&&v2->type==VOID)
-		return T;
+		return &T;
 	if (v1->type!=CELL&&v1->type!=QUOTE)
-		return v1->data.i==v2->data.i?T:NIL;
-	return NIL;
+		return v1->data.i==v2->data.i?&T:&NIL;
+	return &NIL;
 }
 var_t *atom(var_t *var)
 {
-	return var->type==CELL||var->type==QUOTE?NIL:T;
+	return var->type==CELL||var->type==QUOTE?&NIL:&T;
 }
 var_t *terpri()
 {
 	putchar('\n');
-	return NIL;
+	return &NIL;
 }
 // Arithmetic
 var_t *arith(var_t *v1,var_t *v2,char op)
