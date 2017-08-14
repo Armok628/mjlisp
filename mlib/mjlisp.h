@@ -29,7 +29,10 @@ datatype infer_type(char *input)
 			||!strcasecmp("TERPRI",input)
 			||!strcasecmp("IF",input)
 			||!strcasecmp("EVAL",input)
-			||!strcasecmp("ADD",input))
+			||!strcmp("+",input)
+			||!strcmp("-",input)
+			||!strcmp("*",input)
+			||!strcmp("/",input))
 		return SPECIAL;
 	if (*input=='(') {
 		if (*(input+1)==')')
@@ -61,6 +64,8 @@ datatype infer_type(char *input)
 			return SYMBOL;
 	}
 	int periods=0;
+	if (*input=='-')
+		input++;
 	for (char *c=input;*c;c++) {
 		if (*c!='.'&&*c<'0'||*c>'9')
 			return VARIABLE;
@@ -168,7 +173,13 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return eval(car(args),env);
 	}
 	if (function==ADD)
-		return add(car(args),car(cdr(args)));
+		return arith(eval(car(args),env),eval(car(cdr(args)),env),'+');
+	if (function==SUB)
+		return arith(eval(car(args),env),eval(car(cdr(args)),env),'-');
+	if (function==MUL)
+		return arith(eval(car(args),env),eval(car(cdr(args)),env),'*');
+	if (function==DIV)
+		return arith(eval(car(args),env),eval(car(cdr(args)),env),'/');
 	assert(function->type==FUNCTION);
 	var_t *func=copy(function);
 	var_t *lex=*env;
@@ -212,8 +223,14 @@ var_t *to_var(char *str)
 		return IF;
 	if (!strcasecmp("EVAL",str))
 		return EVAL;
-	if (!strcasecmp("ADD",str)||!strcmp("+",str))
+	if (!strcmp("+",str))
 		return ADD;
+	if (!strcmp("-",str))
+		return SUB;
+	if (!strcmp("*",str))
+		return MUL;
+	if (!strcmp("/",str))
+		return DIV;
 	int i,q;
 	float f;
 	char *s;

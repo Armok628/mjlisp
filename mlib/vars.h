@@ -34,8 +34,14 @@ var_t IF_FUN={.type=SPECIAL,.data.s="IF"};
 var_t *IF=&IF_FUN;
 var_t EVAL_FUN={.type=SPECIAL,.data.s="EVAL"};
 var_t *EVAL=&EVAL_FUN;
-var_t ADD_FUN={.type=SPECIAL,.data.s="ADD"};
+var_t ADD_FUN={.type=SPECIAL,.data.s="+"};
 var_t *ADD=&ADD_FUN;
+var_t SUB_FUN={.type=SPECIAL,.data.s="-"};
+var_t *SUB=&SUB_FUN;
+var_t MUL_FUN={.type=SPECIAL,.data.s="*"};
+var_t *MUL=&MUL_FUN;
+var_t DIV_FUN={.type=SPECIAL,.data.s="/"};
+var_t *DIV=&DIV_FUN;
 var_t *ENV;
 var_t *new_ivar(int i)
 {

@@ -1,7 +1,5 @@
 // Lisp core functions
 
-// To-do: Other arithmetic, terpri, apply, if/cond, label
-
 #include "types.h" // Datatypes
 #include "vars.h" // Variable tools
 
@@ -90,18 +88,43 @@ var_t *terpri()
 	return NIL;
 }
 // Arithmetic
-var_t *add(var_t *v1,var_t *v2)
+var_t *arith(var_t *v1,var_t *v2,char op)
 {
 	assert(v1->type==INT||v1->type==FLOAT);
 	assert(v2->type==INT||v2->type==FLOAT);
 	var_t *result=NEW(var_t);
 	result->type=INT;
-	if (v1->type==FLOAT||v2->type==FLOAT) {
-		result->type=FLOAT;
-		result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
-			+(v2->type==INT?v2->data.i:v2->data.f);
-	} else 
-		result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
-			+(v2->type==INT?v2->data.i:v2->data.f);
+	if (v1->type==FLOAT||v2->type==FLOAT
+			||(op=='/'&&v1->data.i%v2->data.i!=0))
+		goto FLOAT;
+	switch (op) {
+		case '+': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
+			  +(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
+		case '-': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
+			  -(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
+		case '*': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
+			  *(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
+		case '/': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
+			  /(v2->type==INT?v2->data.i:v2->data.f);
+	}
+	goto RETURN;
+FLOAT:  result->type=FLOAT;
+	switch (op) {
+		case '+': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
+			  +(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
+		case '-': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
+			  -(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
+		case '*': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
+			  *(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
+		case '/': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
+			  /(v2->type==INT?v2->data.i:v2->data.f);
+	}
+RETURN:	return result;
 }
 #endif
