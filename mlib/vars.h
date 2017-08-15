@@ -20,6 +20,7 @@ var_t PROGN={.type=SPECIAL,.data.s="PROGN"};
 var_t TERPRI={.type=SPECIAL,.data.s="TERPRI"};
 var_t IF={.type=SPECIAL,.data.s="IF"};
 var_t EVAL={.type=SPECIAL,.data.s="EVAL"};
+var_t READ={.type=SPECIAL,.data.s="READ"};
 var_t EXIT={.type=SPECIAL,.data.s="EXIT"};
 var_t ADD={.type=SPECIAL,.data.s="+"};
 var_t SUB={.type=SPECIAL,.data.s="-"};

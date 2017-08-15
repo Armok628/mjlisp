@@ -29,6 +29,7 @@ datatype infer_type(char *input)
 			||!strcasecmp("TERPRI",input)
 			||!strcasecmp("IF",input)
 			||!strcasecmp("EVAL",input)
+			||!strcasecmp("READ",input)
 			||!strcasecmp("EXIT",input)
 			||!strcmp("+",input)
 			||!strcmp("-",input)
@@ -132,6 +133,7 @@ void destroy(var_t *var)
 		free(var->data.s);
 	free(var);
 }
+var_t *read(char *str);
 var_t *apply(var_t *function,var_t *args,var_t **env)
 {
 	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
@@ -181,6 +183,14 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		car(args)->type=CELL;
 		return eval(car(args),env);
 	}
+	if (function==&READ) {
+		assert(car(args)->type==INT);
+		char *s=malloc(car(args)->data.i);
+		fgets(s,car(args)->data.i-1,stdin);
+		var_t *v=read(s);
+		free(s);
+		return v;
+	}
 	if (function==&EXIT)
 		exit(0);
 	if (function==&ADD)
@@ -213,7 +223,6 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	destroy(cdr(func));
 	return result;
 }
-var_t *read(char *str);
 var_t *to_var(char *str)
 {
 	//printf("TO_VAR\n");
@@ -241,6 +250,8 @@ var_t *to_var(char *str)
 		return &IF;
 	if (!strcasecmp("EVAL",str))
 		return &EVAL;
+	if (!strcasecmp("READ",str))
+		return &READ;
 	if (!strcasecmp("EXIT",str))
 		return &EXIT;
 	if (!strcmp("+",str))
@@ -354,9 +365,9 @@ var_t *subst(var_t *list,var_t **env)
 var_t *eval(var_t *form,var_t **env)
 {
 	//printf("EVAL "); debug_display(form); terpri();
-	//printf("ENV: "); debug_display(*env); terpri();
 	if (!*env)
 		*env=&NIL;
+	//printf("ENV: "); debug_display(*env); terpri();
 	if (form->type==VARIABLE)
 		return reference(form,env);
 	if (form->type==QUOTE) {
