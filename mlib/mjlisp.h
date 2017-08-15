@@ -348,8 +348,6 @@ var_t *subst(var_t *list,var_t **env)
 }
 var_t *eval(var_t *form,var_t **env)
 {
-	if (!*env)
-		*env=&NIL;
 	//printf("EVAL "); debug_display(form); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
 	if (!*env)
@@ -364,10 +362,7 @@ var_t *eval(var_t *form,var_t **env)
 	if (form->type==CELL) {
 		if (car(form)->type==VARIABLE)
 			form->data.l->car=reference(car(form),env);
-		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
-			return apply(car(form),cdr(form),env);
-		else
-			return subst(form,env);
+		return apply(car(form),cdr(form),env);
 	}
 	return form;
 }
