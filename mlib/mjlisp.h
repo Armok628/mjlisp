@@ -29,6 +29,7 @@ datatype infer_type(char *input)
 			||!strcasecmp("TERPRI",input)
 			||!strcasecmp("IF",input)
 			||!strcasecmp("EVAL",input)
+			||!strcasecmp("EXIT",input)
 			||!strcmp("+",input)
 			||!strcmp("-",input)
 			||!strcmp("*",input)
@@ -180,6 +181,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		car(args)->type=CELL;
 		return eval(car(args),env);
 	}
+	if (function==&EXIT)
+		exit(0);
 	if (function==&ADD)
 		return arith(car(args),car(cdr(args)),'+');
 	if (function==&SUB)
@@ -238,6 +241,8 @@ var_t *to_var(char *str)
 		return &IF;
 	if (!strcasecmp("EVAL",str))
 		return &EVAL;
+	if (!strcasecmp("EXIT",str))
+		return &EXIT;
 	if (!strcmp("+",str))
 		return &ADD;
 	if (!strcmp("-",str))
