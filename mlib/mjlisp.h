@@ -11,7 +11,7 @@
 
 #ifndef MJLISP_H
 #define MJLISP_H
-//#include "debug.h"
+#include "debug.h"
 bool is_whitespace(char c)
 {
 	return c==' '||c=='\n'||c=='\t'||c=='\0';
@@ -53,23 +53,26 @@ datatype infer_type(char *input)
 			return FUNCTION;
 		else
 			free(lambda);
-		for (char *c=input;*c;c++)
-			if (*c==')')
-				return CELL;
+		for (;*input&&*input!=')';input++);
+		if (*input)
+			return CELL;
 		return ERROR;
 	}
 	if (*input=='\\') {
 		assert(strlen(input)==2);
 		return CHAR;
-	} else if (*input=='\'') {
+	}
+	if (*input=='\'') {
 		if (*(input+1)=='(') {
-			if (*(input+2)==')')
+			bool v=true;
+			for (;*input&&*input!=')';input++)
+				if (!is_whitespace(*input))
+					v=false;
+			if (v)
 				return VOID;
-			for (;*input;input++);
-			if (*(input-1)==')')
+			if (*input)
 				return QUOTE;
-			else
-				return ERROR;
+			return ERROR;
 		} else
 			return SYMBOL;
 	}
@@ -309,6 +312,7 @@ var_t *read(char *str)
 	datatype t=infer_type(str);
 	if (t!=CELL&&t!=QUOTE&&t!=FUNCTION)
 		return to_var(str);
+	str+=*str=='\'';
 	var_t *end=cons(NULL,&NIL),*start=end;
 	int parens=0;
 	char *token=malloc(strlen(str)),*marker=str;
@@ -341,7 +345,7 @@ var_t *read(char *str)
 			} else {
 				start->data.l->car=to_var(token);
 			}
-			//printf("|%s| ",token); //debug_display(car(end)); terpri();
+			//printf("|%s| ",token); debug_display(car(end)); terpri();
 			marker=c;
 			if (parens==0)
 				break;
