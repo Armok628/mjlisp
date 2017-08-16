@@ -378,7 +378,10 @@ var_t *eval(var_t *form,var_t **env)
 	if (form->type==CELL) {
 		if (car(form)->type==VARIABLE)
 			form->data.l->car=reference(car(form),env);
-		return apply(car(form),cdr(form),env);
+		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
+			return apply(car(form),cdr(form),env);
+		else
+			return subst(form,env);
 	}
 	return form;
 }
