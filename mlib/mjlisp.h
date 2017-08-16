@@ -12,6 +12,10 @@
 #ifndef MJLISP_H
 #define MJLISP_H
 //#include "debug.h"
+bool is_whitespace(char c)
+{
+	return c==' '||c=='\n'||c=='\t'||c=='\0';
+}
 datatype infer_type(char *input)
 {
 	//printf("INFER_TYPE\n");
@@ -72,7 +76,7 @@ datatype infer_type(char *input)
 	int periods=0;
 	if (*input=='-')
 		input++;
-	for (char *c=input;*c;c++) {
+	for (char *c=input;!is_whitespace(*c);c++) {
 		if (*c!='.'&&*c<'0'||*c>'9')
 			return VARIABLE;
 		if (*c=='.')
@@ -299,10 +303,6 @@ var_t *to_var(char *str)
 			       return v;
 	}
 }
-bool is_whitespace(char c)
-{
-	return c==' '||c=='\n'||c=='\t';
-}
 var_t *read(char *str)
 {
 	//printf("READ\n");
@@ -319,7 +319,7 @@ var_t *read(char *str)
 			strncpy(token,marker,c-marker);
 			token[c-marker]='\0';
 			end->data.l->cdr=to_var(token);
-			////printf("|%s| ",token); debug_display(cdr(end)); terpri();
+			///printf("|%s| ",token); debug_display(cdr(end)); terpri();
 			break;
 		}
 		if (*c=='(')
