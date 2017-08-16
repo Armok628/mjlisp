@@ -189,8 +189,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	}
 	if (function==&READ) {
 		assert(car(args)->type==INT);
-		char *s=malloc(car(args)->data.i);
-		fgets(s,car(args)->data.i-1,stdin);
+		char *s=malloc(car(args)->data.i+2);
+		fgets(s,car(args)->data.i+1,stdin);
 		var_t *v=read(s);
 		free(s);
 		return v;
