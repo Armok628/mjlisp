@@ -299,6 +299,10 @@ var_t *to_var(char *str)
 			       return v;
 	}
 }
+bool is_whitespace(char c)
+{
+	return c==' '||c=='\n'||c=='\t';
+}
 var_t *read(char *str)
 {
 	//printf("READ\n");
@@ -323,7 +327,11 @@ var_t *read(char *str)
 		else if (*c==')') {
 			parens--;
 		}
-		if (parens==1&&*c==' '||parens==0) {
+		if (parens==1&&is_whitespace(*c)||parens==0) {
+			if (is_whitespace(*(c-1))) {
+				marker=c;
+				continue;
+			}
 			strncpy(token,marker+1,c-marker-1);
 			token[c-marker-1]='\0';
 			if (car(start)) {
@@ -333,7 +341,7 @@ var_t *read(char *str)
 			} else {
 				start->data.l->car=to_var(token);
 			}
-			////printf("|%s| ",token); debug_display(car(end)); terpri();
+			//printf("|%s| ",token); //debug_display(car(end)); terpri();
 			marker=c;
 			if (parens==0)
 				break;
