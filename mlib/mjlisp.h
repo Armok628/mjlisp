@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "types.h" // Datatypes
 #include "vars.h" // Variable tools
@@ -59,7 +58,7 @@ datatype infer_type(char *input)
 		return ERROR;
 	}
 	if (*input=='\\') {
-		assert(strlen(input)==2);
+		ASSERTM(strlen(input)==2,"\nFatal error: Escaped non-character\n\n");
 		return CHAR;
 	}
 	if (*input=='\'') {
@@ -145,8 +144,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 {
 	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
-	assert(function!=&NIL);
-	assert(args->type==CELL||args->type==VOID);
+	ASSERTM(function!=&NIL,"\nFatal error: NIL is not a function\n\n");
+	ASSERTM(args->type==CELL||args->type==VOID,"\nFatal error: Arguments not formatted as list\n\n");
 	if (function==&PROGN) {
 		var_t *v=args;
 		for (;v->type==CELL&&cdr(v)!=&NIL;v=cdr(v))
@@ -178,7 +177,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	if (function==&ATOM)
 		return atom(car(args));
 	if (function==&DEFINE) {
-		assert(car(args)->type==SYMBOL);
+		ASSERTM(car(args)->type==SYMBOL,"\nFatal error: Non-symbols can not be defined\n\n");
 		*env=cons(cons(car(args),car(cdr(args))),*env);
 		car(args)->type=SYMBOL;
 		//printf("NEW ENV: "); debug_display(*env); terpri();
@@ -191,7 +190,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return eval(car(args),env);
 	}
 	if (function==&READ) {
-		assert(car(args)->type==INT);
+		ASSERTM(car(args)->type==INT,"\nFatal error: Read requires size argument\n\n");
 		char *s=malloc(car(args)->data.i+2);
 		fgets(s,car(args)->data.i+1,stdin);
 		var_t *v=read(s);
@@ -212,7 +211,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return car(args)->data.i>car(cdr(args))->data.i?&T:&NIL;
 	if (function==&LESS)
 		return car(args)->data.i<car(cdr(args))->data.i?&T:&NIL;
-	assert(function->type==FUNCTION);
+	ASSERTM(function->type==FUNCTION,"\nFatal error: Non-functions can not be applied\n\n");
 	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
 	var_t *lex=*env;
@@ -222,7 +221,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		car(v)->type=SYMBOL;
 		args=cdr(args);
 	}
-	assert(args->type==VOID);
+	ASSERTM(args->type==VOID,"\nFatal error: Excess arguments in function application\n\n");
 	//printf("LEXICAL ENV: "); debug_display(lex); terpri();
 	var_t *result=eval(car(cdr(func)),&lex);
 	//printf("DESTROY "); debug_display(func); terpri();
