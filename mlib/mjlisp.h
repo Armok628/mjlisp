@@ -149,8 +149,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	if (function==&PROGN) {
 		var_t *v=args;
 		for (;v->type==CELL&&cdr(v)!=&NIL;v=cdr(v))
-			eval(subst(car(v),env),env);
-		return eval(subst(car(v),env),env);
+			eval(car(v),env);
+		return eval(car(v),env);
 	}
 	if (function==&IF) {
 		if (eval(car(args),env)!=&NIL)
