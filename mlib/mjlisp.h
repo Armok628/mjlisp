@@ -41,7 +41,8 @@ datatype infer_type(char *input)
 			||!strcmp(">",input)
 			||!strcmp("<",input)
 			||!strcasecmp("AND",input)
-			||!strcasecmp("OR",input))
+			||!strcasecmp("OR",input)
+			||!strcasecmp("RANDOM",input))
 		return SPECIAL;
 	if (*input=='(') {
 		if (*(input+1)==')')
@@ -113,24 +114,25 @@ var_t *copy(var_t *var)
 	if (var->type==VOID||var->type==SPECIAL)
 		return var;
 	var_t *c=NEW(var_t);
-	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION) {
+	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION)
 		c=cons(copy(car(var)),copy(cdr(var)));
-		c->type=var->type;
-		return c;
-	}
-	c->type=var->type;
-	if (var->type==SYMBOL||var->type==VARIABLE) {
+	else if (var->type==SYMBOL||var->type==VARIABLE) {
 		c->data.s=malloc(strlen(var->data.s));
 		strcpy(c->data.s,var->data.s);
 	} else
 		c->data=var->data;
+	c->type=var->type;
 	return c;
 }
 void destroy(var_t *var)
 {
-	//printf("DESTROY "); debug_display(var); terpri();
 	if (!var||var->type==VOID||var->type==SPECIAL||var->type==FUNCTION)
 		return;
+	/* Temporary fix */
+	if (var->type==INT)
+		return;
+	/* Temporary fix */
+	//printf("DESTROY "); debug_display(var); terpri();
 	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION) {
 		destroy(car(var));
 		destroy(cdr(var));
@@ -211,6 +213,10 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return car(args)->data.i>car(cdr(args))->data.i?&T:&NIL;
 	if (function==&LESS)
 		return car(args)->data.i<car(cdr(args))->data.i?&T:&NIL;
+	if (function==&RANDOM) {
+		ASSERTM(car(args)->type==INT,"\nFatal error: Non-integer argument to RANDOM\n\n");
+		return new_ivar(rand()%car(args)->data.i);
+	}
 	ASSERTM(function->type==FUNCTION,"\nFatal error: Non-functions can not be applied\n\n");
 	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
@@ -276,6 +282,8 @@ var_t *to_var(char *str)
 		return &AND;
 	if (!strcasecmp("OR",str))
 		return &OR;
+	if (!strcasecmp("RANDOM",str))
+		return &RANDOM;
 	int i,q;
 	float f;
 	char *s;

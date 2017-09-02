@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "mlib/mjlisp.h"
 int main(int argc,char **argv)
 {
+	srand(time(NULL));
 	if (argc==2) {
 		FILE *input_file=fopen(argv[1],"r");
 		if (!input_file) {
