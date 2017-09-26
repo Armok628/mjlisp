@@ -112,9 +112,12 @@ var_t *arith(var_t *v1,var_t *v2,char op)
 			  break;
 		case '/': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
 			  /(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
+		case '%': result->data.i=v1->data.i%v2->data.i;
 	}
 	goto RETURN;
 FLOAT:  result->type=FLOAT;
+	ASSERTM(op!='%',"\nFatal error: Cannot find modulus of two floats\n\n");
 	switch (op) {
 		case '+': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
 			  +(v2->type==INT?v2->data.i:v2->data.f);
@@ -127,6 +130,7 @@ FLOAT:  result->type=FLOAT;
 			  break;
 		case '/': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
 			  /(v2->type==INT?v2->data.i:v2->data.f);
+			  break;
 	}
 RETURN:	return result;
 }

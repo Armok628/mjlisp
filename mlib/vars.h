@@ -26,6 +26,7 @@ var_t ADD={.type=SPECIAL,.data.s="+"};
 var_t SUB={.type=SPECIAL,.data.s="-"};
 var_t MUL={.type=SPECIAL,.data.s="*"};
 var_t DIV={.type=SPECIAL,.data.s="/"};
+var_t MOD={.type=SPECIAL,.data.s="MOD"};
 var_t GREATER={.type=SPECIAL,.data.s=">"};
 var_t LESS={.type=SPECIAL,.data.s="<"};
 var_t AND={.type=SPECIAL,.data.s="AND"};

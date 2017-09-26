@@ -38,6 +38,7 @@ datatype infer_type(char *input)
 			||!strcmp("-",input)
 			||!strcmp("*",input)
 			||!strcmp("/",input)
+			||!strcasecmp("MOD",input)
 			||!strcmp(">",input)
 			||!strcmp("<",input)
 			||!strcasecmp("AND",input)
@@ -209,6 +210,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 		return arith(car(args),car(cdr(args)),'*');
 	if (function==&DIV)
 		return arith(car(args),car(cdr(args)),'/');
+	if (function==&MOD)
+		return arith(car(args),car(cdr(args)),'%');
 	if (function==&GREATER)
 		return car(args)->data.i>car(cdr(args))->data.i?&T:&NIL;
 	if (function==&LESS)
@@ -278,6 +281,8 @@ var_t *to_var(char *str)
 		return &GREATER;
 	if (!strcmp("<",str))
 		return &LESS;
+	if (!strcasecmp("MOD",str))
+		return &MOD;
 	if (!strcasecmp("AND",str))
 		return &AND;
 	if (!strcasecmp("OR",str))
