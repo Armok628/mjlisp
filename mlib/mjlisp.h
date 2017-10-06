@@ -148,7 +148,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
 	ASSERTM(function!=&NIL,"\nFatal error: NIL is not a function\n\n");
-	ASSERTM(args->type==CELL||args->type==VOID,"\nFatal error: Arguments not formatted as list\n\n");
+	ASSERTM(args->type==CELL||args->type==QUOTE||args->type==VOID
+			,"\nFatal error: Arguments not formatted as list\n\n");
 	if (function==&PROGN) {
 		var_t *v=args;
 		for (;v->type==CELL&&cdr(v)!=&NIL;v=cdr(v))
