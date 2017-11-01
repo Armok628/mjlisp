@@ -17,3 +17,11 @@ Some quick examples:
 
 `zip` from Haskell can be defined as
 `(define 'zip (lambda (x y) (if (and x y) (cons (cons (car x) (car y)) (zip (cdr x) (cdr y))) nil)))`
+
+`apply` can be defined simply as `(define 'apply (lambda (f x) (eval (cons f x))))`
+
+`append` can be defined as
+`(define 'append (lambda (l a) (if l (cons (car l) (append (cdr l) a)) a)))`
+
+`reverse` can be defined as
+`(define 'reverse (lambda (l) (progn (define 'r (lambda (l a) (if l (r (cdr l) (cons (car l) a)) a))) (r l nil))))`
