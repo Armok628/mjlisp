@@ -7,21 +7,4 @@ This Lisp is going to be slightly different in that the backquote/unquote featur
 
 For example, if `a` is bound to `1` and `b` is bound to `2`, `'(a 'b)` would become `(1 b)`. (In Common Lisp, the same would be written as `` `(,a b) ``)
 
-Some quick examples:
-
-`mapcar` from Common Lisp could be defined as
-`(define 'mapcar (lambda (f x) (if x (cons (f (car x)) (mapcar f (cdr x))) nil)))`
-
-`reduce` from Common Lisp can be defined as
-`(define 'reduce (lambda (f x) (progn (define 'r (lambda (f x a) (if x (r f (cdr x) (f a (car x))) a))) (r f (cdr (cdr x)) (f (car x) (car (cdr x)))))))`
-
-`zip` from Haskell can be defined as
-`(define 'zip (lambda (x y) (if (and x y) (cons (cons (car x) (car y)) (zip (cdr x) (cdr y))) nil)))`
-
-`apply` can be defined simply as `(define 'apply (lambda (f x) (eval (cons f x))))`
-
-`append` can be defined as
-`(define 'append (lambda (l a) (if l (cons (car l) (append (cdr l) a)) a)))`
-
-`reverse` can be defined as
-`(define 'reverse (lambda (l) (progn (define 'r (lambda (l a) (if l (r (cdr l) (cons (car l) a)) a))) (r l nil))))`
+Some definitions for more complicated functions (using only primitives) are included as examples.

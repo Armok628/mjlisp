@@ -6,7 +6,7 @@
 
 #include "types.h" // Datatypes
 #include "vars.h" // Variable tools
-#include "cfunc.h" // Core functions
+#include "cfunc.c" // Core functions
 
 #ifndef MJLISP_H
 #define MJLISP_H

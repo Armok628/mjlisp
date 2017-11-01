@@ -1,6 +1,6 @@
 #include "types.h"
 #include "vars.h"
-#include "cfunc.h"
+#include "cfunc.c"
 #ifndef DEBUG_H
 #define DEBUG_H
 static char *type_strings[] = {
