@@ -150,10 +150,12 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	ASSERTM(function!=&NIL,"\nFatal error: NIL is not a function\n\n");
 	ASSERTM(args->type==CELL||args->type==QUOTE||args->type==VOID
 			,"\nFatal error: Arguments not formatted as list\n\n");
+	// Special forms. Defined here, or in cfunc.c, or both.
 	if (function==&PROGN) {
 		var_t *v=args;
 		for (;v->type==CELL&&cdr(v)!=&NIL;v=cdr(v))
 			eval(car(v),env);
+		// Returns evaluation of last item in args
 		return eval(car(v),env);
 	}
 	if (function==&IF) {
@@ -168,7 +170,6 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		return function==&AND?&T:&NIL;
 	}
 	args=subst(args,env);
-	// Special forms. Defined here, or in cfunc.c, or both.
 	if (function==&CAR)
 		return car(car(args));
 	if (function==&CDR)
