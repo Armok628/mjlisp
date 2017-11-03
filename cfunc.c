@@ -45,7 +45,7 @@ var_t *display(var_t *var)
 			  return &NIL;
 		case FLOAT: printf("%f",var->data.f);
 			    return &NIL;
-		case CHAR: printf("\\%c",var->data.c);
+		case CHAR: printf("%c",var->data.c);
 			   return &NIL;
 		case SYMBOL: printf("%s",var->data.s);
 			     return &NIL;

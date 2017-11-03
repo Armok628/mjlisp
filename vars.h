@@ -10,6 +10,7 @@
 #define NEW_SPECIAL_FORM(name) NEW_SPECIAL_OP(name,#name)
 var_t NIL={.type=VOID,.data.l=NULL};
 var_t T={.type=SYMBOL,.data.s="T"};
+var_t SPACE={.type=CHAR,.data.c=' '};
 NEW_SPECIAL_FORM(CAR);
 NEW_SPECIAL_FORM(CDR);
 NEW_SPECIAL_FORM(CONS);

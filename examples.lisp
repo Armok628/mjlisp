@@ -6,5 +6,8 @@
   (define 'zip (lambda (x y) (if (and x y) (cons (cons (car x) (car y)) (zip (cdr x) (cdr y))) nil)))
   (define 'append (lambda (l a) (if l (cons (car l) (append (cdr l) a)) a)))
   (define 'reverse (lambda (l) (progn (define 'r (lambda (l a) (if l (r (cdr l) (cons (car l) a)) a))) (r l nil))))
+
+  (define 'print (lambda (l) (progn (mapcar display (reverse l)) (terpri))))
+  (define 'space (lambda (l) (cdr (reduce append (mapcar (lambda (x) '(\ x)) l)))))
   (repl)
   )

@@ -15,7 +15,7 @@ bool is_whitespace(char c)
 {
 	return c==' '||c=='\n'||c=='\t'||c=='\0';
 }
-datatype infer_type(char *input)
+datatype infer_type(char *input) // Decides type value for given input
 {
 	//printf("INFER_TYPE\n");
 	if (!strcasecmp("NIL",input))
@@ -60,7 +60,7 @@ datatype infer_type(char *input)
 		return ERROR;
 	}
 	if (*input=='\\') {
-		ASSERTM(strlen(input)==2,"\nFatal error: Escaped non-character\n\n");
+		ASSERTM(strlen(input)<3,"\nFatal error: Escaped non-character\n\n");
 		return CHAR;
 	}
 	if (*input=='\'') {
@@ -92,7 +92,7 @@ datatype infer_type(char *input)
 		default: return ERROR;
 	}
 }
-var_t *reference(var_t *term,var_t **env)
+var_t *reference(var_t *term,var_t **env) // (cadr (assoc term env))
 {
 	//printf("REFERENCE\n");
 	//printf("ENV: "); debug_display(*env); terpri();
@@ -130,7 +130,7 @@ void destroy(var_t *var)
 	if (!var||var->type==VOID||var->type==SPECIAL||var->type==FUNCTION)
 		return;
 	/* Temporary fix */
-	if (var->type==INT)
+	if (var->type==INT||var->type==CHAR)
 		return;
 	/* Temporary fix */
 	//printf("DESTROY "); debug_display(var); terpri();
@@ -143,7 +143,7 @@ void destroy(var_t *var)
 	free(var);
 }
 var_t *read(char *str);
-var_t *apply(var_t *function,var_t *args,var_t **env)
+var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arguments in an environment
 {
 	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
@@ -239,7 +239,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env)
 	destroy(cdr(func));
 	return result;
 }
-var_t *to_var(char *str)
+var_t *to_var(char *str) // Converts input string into a variable
 {
 	//printf("TO_VAR\n");
 	if (!strcasecmp("CAR",str))
@@ -290,6 +290,8 @@ var_t *to_var(char *str)
 		return &OR;
 	if (!strcasecmp("RANDOM",str))
 		return &RANDOM;
+	if (!strcasecmp("\\", str))
+		return &SPACE;
 	int i,q;
 	float f;
 	char *s;
@@ -319,7 +321,7 @@ var_t *to_var(char *str)
 			       return v;
 	}
 }
-var_t *read(char *str)
+var_t *read(char *str) // Tokenizes input into nested lists
 {
 	//printf("READ\n");
 	datatype t=infer_type(str);
@@ -370,7 +372,7 @@ var_t *read(char *str)
 	//printf("READ: "); debug_display(start); terpri();
 	return start;
 }
-var_t *subst(var_t *list,var_t **env)
+var_t *subst(var_t *list,var_t **env) // Replaces items in list with evaluations or bindings
 {
 	//printf("SUBST "); debug_display(list); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
@@ -387,7 +389,7 @@ var_t *subst(var_t *list,var_t **env)
 		return cons(reference(car(list),env),subst(cdr(list),env));
 	return cons(car(list),subst(cdr(list),env));
 }
-var_t *eval(var_t *form,var_t **env)
+var_t *eval(var_t *form,var_t **env) // Evaluates a form through mutual recursion
 {
 	//printf("EVAL "); debug_display(form); terpri();
 	if (!*env)
