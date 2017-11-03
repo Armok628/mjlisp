@@ -191,7 +191,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	if (function==&TERPRI)
 		return terpri();
 	if (function==&EVAL) {
-		car(args)->type=CELL;
+		if (car(args)->type==QUOTE)
+			car(args)->type=CELL;
 		return eval(car(args),env);
 	}
 	if (function==&READ) {
@@ -371,7 +372,7 @@ ADD_TOKEN:		if (car(start)) {
 			} else {
 				start->data.l->car=to_var(token);
 			}
-			// printf("|%s| ",token); debug_display(car(end)); terpri();
+			//printf("|%s| ",token); debug_display(car(end)); terpri();
 			if (parens==0)
 				break;
 		}
