@@ -291,8 +291,6 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 		return &OR;
 	if (!strcasecmp("RANDOM",str))
 		return &RANDOM;
-	if (!strcasecmp("\\", str))
-		return &SPACE;
 	int i,q;
 	float f;
 	char *s;
@@ -303,8 +301,7 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 			  return new_ivar(i);
 		case FLOAT: sscanf(str,"%f",&f);
 			  return new_fvar(f);
-		case CHAR: /**/ printf("\n\ncharacter detected: %c\n\n",str[1]); /**/
-			   return new_cvar(str[1]);
+		case CHAR: return new_cvar(str[1]);
 		case VARIABLE:
 		case SYMBOL: q=*str=='\'';
 			     s=malloc(strlen(str)-q);
@@ -338,7 +335,6 @@ var_t *read(char *str) // Tokenizes input into nested lists. Mutual recursion wi
 		if (parens==1&&*c=='\\') {
 			strncpy(token,c,2);
 			token[2]='\0';
-			printf("\n\nDEBUG: \"%s\"\n\n",token);
 			c+=2;
 			marker=c;
 			goto ADD_TOKEN;

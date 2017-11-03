@@ -8,6 +8,6 @@
   (define 'reverse (lambda (l) (progn (define 'r (lambda (l a) (if l (r (cdr l) (cons (car l) a)) a))) (r l nil))))
 
   (define 'print (lambda (l) (progn (mapcar display (reverse l)) (terpri))))
-  (define 'space (lambda (l) (cdr (reduce append (mapcar (lambda (x) '(\ x)) l)))))
+  (define 'space (lambda (l) (cdr (reduce append (mapcar (lambda (x) '(\  x)) l)))))
   (repl)
   )
