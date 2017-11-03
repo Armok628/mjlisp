@@ -11,5 +11,6 @@
   (define 'print (lambda (l) (mapcar display (reverse l))))
   (define 'println (lambda (l) (progn (print l) (terpri))))
   (define 'space (lambda (l) (cdr (reduce append (mapcar (lambda (x) '(\  x)) l)))))
+  (define 'splice (lambda (l) (reduce append l)))
   (repl)
   )
