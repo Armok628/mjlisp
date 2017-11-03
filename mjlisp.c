@@ -168,6 +168,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		return function==&AND?&T:&NIL;
 	}
 	args=subst(args,env);
+	// Special forms. Defined here, or in cfunc.c, or both.
 	if (function==&CAR)
 		return car(car(args));
 	if (function==&CDR)
@@ -239,7 +240,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	destroy(cdr(func));
 	return result;
 }
-var_t *to_var(char *str) // Converts input string into a variable
+var_t *to_var(char *str) // Converts input string (see read) into a real variable
 {
 	//printf("TO_VAR\n");
 	if (!strcasecmp("CAR",str))
@@ -302,7 +303,8 @@ var_t *to_var(char *str) // Converts input string into a variable
 			  return new_ivar(i);
 		case FLOAT: sscanf(str,"%f",&f);
 			  return new_fvar(f);
-		case CHAR: return new_cvar(*++str);
+		case CHAR: /**/ printf("\n\ncharacter detected: %c\n\n",str[1]); /**/
+			   return new_cvar(str[1]);
 		case VARIABLE:
 		case SYMBOL: q=*str=='\'';
 			     s=malloc(strlen(str)-q);
@@ -321,7 +323,7 @@ var_t *to_var(char *str) // Converts input string into a variable
 			       return v;
 	}
 }
-var_t *read(char *str) // Tokenizes input into nested lists
+var_t *read(char *str) // Tokenizes input into nested lists. Mutual recursion with to_var
 {
 	//printf("READ\n");
 	datatype t=infer_type(str);
@@ -332,20 +334,32 @@ var_t *read(char *str) // Tokenizes input into nested lists
 	int parens=0;
 	char *token=malloc(strlen(str)),*marker=str;
 	for (char *c=str;*c;c++) {
+		// Character escape
+		if (parens==1&&*c=='\\') {
+			strncpy(token,c,2);
+			token[2]='\0';
+			printf("\n\nDEBUG: \"%s\"\n\n",token);
+			c+=2;
+			marker=c;
+			goto ADD_TOKEN;
+		}
+		// Dotted list interpretation
 		if (parens==1&&*c=='.'&&*(c+1)==' ') {
 			marker=c+2;
-			for (;*c!=')';c++);
+			for (;*c!=')';c++); // Skip to the end of the form
 			strncpy(token,marker,c-marker);
 			token[c-marker]='\0';
 			end->data.l->cdr=to_var(token);
 			//printf("|%s| ",token); debug_display(cdr(end)); terpri();
 			break;
 		}
+		// Ignore things between parentheses until later
 		if (*c=='(')
 			parens++;
 		else if (*c==')') {
 			parens--;
 		}
+		// General tokens/lists
 		if (parens==1&&is_whitespace(*c)||parens==0) {
 			if (is_whitespace(*(c-1))) {
 				marker=c;
@@ -353,15 +367,15 @@ var_t *read(char *str) // Tokenizes input into nested lists
 			}
 			strncpy(token,marker+1,c-marker-1);
 			token[c-marker-1]='\0';
-			if (car(start)) {
+			marker=c;
+ADD_TOKEN:		if (car(start)) {
 				end->data.l->cdr=cons(&NIL,&NIL);
 				end=cdr(end);
 				end->data.l->car=to_var(token);
 			} else {
 				start->data.l->car=to_var(token);
 			}
-			//printf("|%s| ",token); debug_display(car(end)); terpri();
-			marker=c;
+			// printf("|%s| ",token); debug_display(car(end)); terpri();
 			if (parens==0)
 				break;
 		}
@@ -372,7 +386,7 @@ var_t *read(char *str) // Tokenizes input into nested lists
 	//printf("READ: "); debug_display(start); terpri();
 	return start;
 }
-var_t *subst(var_t *list,var_t **env) // Replaces items in list with evaluations or bindings
+var_t *subst(var_t *list,var_t **env) // Replaces items in list with evaluations (via eval) or bindings (via reference)
 {
 	//printf("SUBST "); debug_display(list); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
@@ -389,7 +403,7 @@ var_t *subst(var_t *list,var_t **env) // Replaces items in list with evaluations
 		return cons(reference(car(list),env),subst(cdr(list),env));
 	return cons(car(list),subst(cdr(list),env));
 }
-var_t *eval(var_t *form,var_t **env) // Evaluates a form through mutual recursion
+var_t *eval(var_t *form,var_t **env) // Evaluates a form. Mutual recursion with subst
 {
 	//printf("EVAL "); debug_display(form); terpri();
 	if (!*env)

@@ -28,7 +28,7 @@ var_t *debug_display(var_t *var)
 		debug_display(var);
 		putchar(' ');
 	}
-	printf("\e[D)[%s]",type_strings[var->type]);
+	printf("\e[D)[%s]",type_strings[type]);
 	return &NIL;
 }
 #endif
