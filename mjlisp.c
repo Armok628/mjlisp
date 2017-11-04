@@ -38,9 +38,10 @@ datatype infer_type(char *input) // Decides type value for given input
 			||!strcmp("-",input)
 			||!strcmp("*",input)
 			||!strcmp("/",input)
-			||!strcasecmp("MOD",input)
+			||!strcmp("%",input)
 			||!strcmp(">",input)
 			||!strcmp("<",input)
+			||!strcmp("^",input)
 			||!strcasecmp("AND",input)
 			||!strcasecmp("OR",input)
 			||!strcasecmp("RANDOM",input))
@@ -220,6 +221,8 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		return car(args)->data.i>car(cdr(args))->data.i?&T:&NIL;
 	if (function==&LESS)
 		return car(args)->data.i<car(cdr(args))->data.i?&T:&NIL;
+	if (function==&EXPT)
+		return arith(car(args),car(cdr(args)),'^');
 	if (function==&RANDOM) {
 		ASSERTM(car(args)->type==INT,"\nFatal error: Non-integer argument to RANDOM\n\n");
 		return new_ivar(rand()%car(args)->data.i);
@@ -285,7 +288,9 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 		return &GREATER;
 	if (!strcmp("<",str))
 		return &LESS;
-	if (!strcasecmp("MOD",str))
+	if (!strcmp("^",str))
+		return &EXPT;
+	if (!strcasecmp("%",str))
 		return &MOD;
 	if (!strcasecmp("AND",str))
 		return &AND;

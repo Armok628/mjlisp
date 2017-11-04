@@ -1,5 +1,6 @@
 // Lisp core functions
 
+#include <math.h>
 #include "types.h" // Datatypes
 #include "vars.h" // Variable tools
 
@@ -101,24 +102,22 @@ var_t *arith(var_t *v1,var_t *v2,char op)
 			||(op=='/'&&v1->data.i%v2->data.i!=0))
 		goto FLOAT;
 	switch (op) {
-		case '+': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
-			  +(v2->type==INT?v2->data.i:v2->data.f);
+		case '+': result->data.i=v1->data.i+v2->data.i;
 			  break;
-		case '-': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
-			  -(v2->type==INT?v2->data.i:v2->data.f);
+		case '-': result->data.i=v1->data.i-v2->data.i;
 			  break;
-		case '*': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
-			  *(v2->type==INT?v2->data.i:v2->data.f);
+		case '*': result->data.i=v1->data.i*v2->data.i;
 			  break;
-		case '/': result->data.i=(v1->type==INT?v1->data.i:v1->data.f)
-			  /(v2->type==INT?v2->data.i:v2->data.f);
+		case '/': result->data.i=v1->data.i/v2->data.i;
 			  break;
 		case '%': result->data.i=v1->data.i%v2->data.i;
+			  break;
+		case '^': result->data.i=pow(v1->data.i,v2->data.i);
 	}
 	goto RETURN;
 FLOAT:  result->type=FLOAT;
-	ASSERTM(op!='%',"\nFatal error: Cannot find modulus of two floats\n\n");
 	switch (op) {
+		// Need to cope with the possibility that either variable is a float
 		case '+': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
 			  +(v2->type==INT?v2->data.i:v2->data.f);
 			  break;
@@ -131,6 +130,11 @@ FLOAT:  result->type=FLOAT;
 		case '/': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
 			  /(v2->type==INT?v2->data.i:v2->data.f);
 			  break;
+		case '%': result->data.f=fmod((v1->type==INT?v1->data.i:v1->data.f)
+			  ,(v2->type==INT?v2->data.i:v2->data.f));
+			  break;
+		case '^': result->data.f=pow((v1->type==INT?v1->data.i:v1->data.f)
+			  ,(v2->type==INT?v2->data.i:v2->data.f));
 	}
 RETURN:	return result;
 }
