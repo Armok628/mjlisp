@@ -290,7 +290,7 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 		return &LESS;
 	if (!strcmp("^",str))
 		return &EXPT;
-	if (!strcasecmp("%",str))
+	if (!strcmp("%",str))
 		return &MOD;
 	if (!strcasecmp("AND",str))
 		return &AND;
