@@ -101,40 +101,28 @@ var_t *arith(var_t *v1,var_t *v2,char op)
 	if (v1->type==FLOAT||v2->type==FLOAT
 			||(op=='/'&&v1->data.i%v2->data.i!=0))
 		goto FLOAT;
+#define INT_OP_CASE(a,o,b) result->data.i=a->data.i o b->data.i; break
 	switch (op) {
-		case '+': result->data.i=v1->data.i+v2->data.i;
-			  break;
-		case '-': result->data.i=v1->data.i-v2->data.i;
-			  break;
-		case '*': result->data.i=v1->data.i*v2->data.i;
-			  break;
-		case '/': result->data.i=v1->data.i/v2->data.i;
-			  break;
-		case '%': result->data.i=v1->data.i%v2->data.i;
-			  break;
+		case '+': INT_OP_CASE(v1,+,v2);
+		case '-': INT_OP_CASE(v1,-,v2);
+		case '*': INT_OP_CASE(v1,*,v2);
+		case '/': INT_OP_CASE(v1,/,v2);
+		case '%': INT_OP_CASE(v1,%,v2);
 		case '^': result->data.i=pow(v1->data.i,v2->data.i);
 	}
 	goto RETURN;
 FLOAT:  result->type=FLOAT;
+#define NUMBER_VALUE(x) (x->type==INT?x->data.i:x->data.f)
+#define FLOAT_OP_CASE(a,o,b) result->data.f=NUMBER_VALUE(a) o NUMBER_VALUE(b); break
 	switch (op) {
 		// Need to cope with the possibility that either variable is a float
-		case '+': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
-			  +(v2->type==INT?v2->data.i:v2->data.f);
+		case '+': FLOAT_OP_CASE(v1,+,v2);
+		case '-': FLOAT_OP_CASE(v1,-,v2);
+		case '*': FLOAT_OP_CASE(v1,*,v2);
+		case '/': FLOAT_OP_CASE(v1,/,v2);
+		case '%': result->data.f=fmod(NUMBER_VALUE(v1),NUMBER_VALUE(v2));
 			  break;
-		case '-': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
-			  -(v2->type==INT?v2->data.i:v2->data.f);
-			  break;
-		case '*': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
-			  *(v2->type==INT?v2->data.i:v2->data.f);
-			  break;
-		case '/': result->data.f=(v1->type==INT?v1->data.i:v1->data.f)
-			  /(v2->type==INT?v2->data.i:v2->data.f);
-			  break;
-		case '%': result->data.f=fmod((v1->type==INT?v1->data.i:v1->data.f)
-			  ,(v2->type==INT?v2->data.i:v2->data.f));
-			  break;
-		case '^': result->data.f=pow((v1->type==INT?v1->data.i:v1->data.f)
-			  ,(v2->type==INT?v2->data.i:v2->data.f));
+		case '^': result->data.f=pow(NUMBER_VALUE(v1),NUMBER_VALUE(v2));
 	}
 RETURN:	return result;
 }

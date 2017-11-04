@@ -18,33 +18,35 @@ bool is_whitespace(char c)
 datatype infer_type(char *input) // Decides type value for given input
 {
 	//printf("INFER_TYPE\n");
+#define INPUT_MATCH(x) !strcasecmp(#x,input)
+#define OP_MATCH(x) (input[0]==x&&input[1]=='\0')
 	if (!strcasecmp("NIL",input))
 		return VOID;
 	if (!strcasecmp("CAR",input)
-			||!strcasecmp("CDR",input)
-			||!strcasecmp("CONS",input)
-			||!strcasecmp("DISPLAY",input)
-			||!strcasecmp("EQ",input)
-			||!strcasecmp("ATOM",input)
-			||!strcasecmp("DEFINE",input)
-			||!strcasecmp("PROGN",input)
-			||!strcasecmp("LAMBDA",input)
-			||!strcasecmp("TERPRI",input)
-			||!strcasecmp("IF",input)
-			||!strcasecmp("EVAL",input)
-			||!strcasecmp("READ",input)
-			||!strcasecmp("EXIT",input)
-			||!strcmp("+",input)
-			||!strcmp("-",input)
-			||!strcmp("*",input)
-			||!strcmp("/",input)
-			||!strcmp("%",input)
-			||!strcmp(">",input)
-			||!strcmp("<",input)
-			||!strcmp("^",input)
-			||!strcasecmp("AND",input)
-			||!strcasecmp("OR",input)
-			||!strcasecmp("RANDOM",input))
+			||INPUT_MATCH(CDR)
+			||INPUT_MATCH(CONS)
+			||INPUT_MATCH(DISPLAY)
+			||INPUT_MATCH(EQ)
+			||INPUT_MATCH(ATOM)
+			||INPUT_MATCH(DEFINE)
+			||INPUT_MATCH(PROGN)
+			||INPUT_MATCH(LAMBDA)
+			||INPUT_MATCH(TERPRI)
+			||INPUT_MATCH(IF)
+			||INPUT_MATCH(EVAL)
+			||INPUT_MATCH(READ)
+			||INPUT_MATCH(EXIT)
+			||INPUT_MATCH(AND)
+			||INPUT_MATCH(OR)
+			||INPUT_MATCH(RANDOM)
+			||OP_MATCH('+')
+			||OP_MATCH('-')
+			||OP_MATCH('*')
+			||OP_MATCH('/')
+			||OP_MATCH('%')
+			||OP_MATCH('>')
+			||OP_MATCH('<')
+			||OP_MATCH('^'))
 		return SPECIAL;
 	if (*input=='(') {
 		if (*(input+1)==')')
@@ -151,7 +153,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	ASSERTM(function!=&NIL,"\nFatal error: NIL is not a function\n\n");
 	ASSERTM(args->type==CELL||args->type==QUOTE||args->type==VOID
 			,"\nFatal error: Arguments not formatted as list\n\n");
-	// Special forms. Defined here, or in cfunc.c, or both.
+	// Special forms are defined here (typically using functions in cfunc.c)
 	if (function==&PROGN) {
 		var_t *v=args;
 		for (;v->type==CELL&&cdr(v)!=&NIL;v=cdr(v))
@@ -207,22 +209,17 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	}
 	if (function==&EXIT)
 		exit(0);
-	if (function==&ADD)
-		return arith(car(args),car(cdr(args)),'+');
-	if (function==&SUB)
-		return arith(car(args),car(cdr(args)),'-');
-	if (function==&MUL)
-		return arith(car(args),car(cdr(args)),'*');
-	if (function==&DIV)
-		return arith(car(args),car(cdr(args)),'/');
-	if (function==&MOD)
-		return arith(car(args),car(cdr(args)),'%');
+#define ARITH_OP(n,c) if (function==&n) return arith(car(args),car(cdr(args)),c)
+	ARITH_OP(ADD,'+');
+	ARITH_OP(SUB,'-');
+	ARITH_OP(MUL,'*');
+	ARITH_OP(DIV,'/');
+	ARITH_OP(MOD,'%');
+	ARITH_OP(EXPT,'^');
 	if (function==&GREATER)
 		return car(args)->data.i>car(cdr(args))->data.i?&T:&NIL;
 	if (function==&LESS)
 		return car(args)->data.i<car(cdr(args))->data.i?&T:&NIL;
-	if (function==&EXPT)
-		return arith(car(args),car(cdr(args)),'^');
 	if (function==&RANDOM) {
 		ASSERTM(car(args)->type==INT,"\nFatal error: Non-integer argument to RANDOM\n\n");
 		return new_ivar(rand()%car(args)->data.i);
@@ -231,6 +228,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
 	var_t *lex=*env;
+	lex=cons(cons(&SELF,func),lex);
 	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) {
 		//printf("BINDING "); debug_display(car(v)); //printf(" TO "); debug_display(car(args)); terpri();
 		lex=cons(cons(car(v),car(args)),lex);
@@ -248,56 +246,33 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 var_t *to_var(char *str) // Converts input string (see read) into a real variable
 {
 	//printf("TO_VAR\n");
-	if (!strcasecmp("CAR",str))
-		return &CAR;
-	if (!strcasecmp("CDR",str))
-		return &CDR;
-	if (!strcasecmp("CONS",str))
-		return &CONS;
-	if (!strcasecmp("DISPLAY",str))
-		return &DISPLAY;
-	if (!strcasecmp("EQ",str))
-		return &EQ;
-	if (!strcasecmp("ATOM",str))
-		return &ATOM;
-	if (!strcasecmp("DEFINE",str))
-		return &DEFINE;
-	if (!strcasecmp("PROGN",str))
-		return &PROGN;
-	if (!strcasecmp("LAMBDA",str))
-		return &LAMBDA;
-	if (!strcasecmp("TERPRI",str))
-		return &TERPRI;
-	if (!strcasecmp("IF",str))
-		return &IF;
-	if (!strcasecmp("EVAL",str))
-		return &EVAL;
-	if (!strcasecmp("READ",str))
-		return &READ;
-	if (!strcasecmp("EXIT",str))
-		return &EXIT;
-	if (!strcmp("+",str))
-		return &ADD;
-	if (!strcmp("-",str))
-		return &SUB;
-	if (!strcmp("*",str))
-		return &MUL;
-	if (!strcmp("/",str))
-		return &DIV;
-	if (!strcmp(">",str))
-		return &GREATER;
-	if (!strcmp("<",str))
-		return &LESS;
-	if (!strcmp("^",str))
-		return &EXPT;
-	if (!strcmp("%",str))
-		return &MOD;
-	if (!strcasecmp("AND",str))
-		return &AND;
-	if (!strcasecmp("OR",str))
-		return &OR;
-	if (!strcasecmp("RANDOM",str))
-		return &RANDOM;
+#define SPECIAL_FORM(s) if (!strcasecmp(#s,str)) return &s
+#define OPERATOR(s,c) if (str[0]==c&&str[1]=='\0') return &s
+	SPECIAL_FORM(CAR);
+	SPECIAL_FORM(CDR);
+	SPECIAL_FORM(CONS);
+	SPECIAL_FORM(DISPLAY);
+	SPECIAL_FORM(EQ);
+	SPECIAL_FORM(ATOM);
+	SPECIAL_FORM(DEFINE);
+	SPECIAL_FORM(PROGN);
+	SPECIAL_FORM(LAMBDA);
+	SPECIAL_FORM(TERPRI);
+	SPECIAL_FORM(IF);
+	SPECIAL_FORM(EVAL);
+	SPECIAL_FORM(READ);
+	SPECIAL_FORM(EXIT);
+	SPECIAL_FORM(AND);
+	SPECIAL_FORM(OR);
+	SPECIAL_FORM(RANDOM);
+	OPERATOR(ADD,'+');
+	OPERATOR(SUB,'-');
+	OPERATOR(MUL,'*');
+	OPERATOR(DIV,'/');
+	OPERATOR(GREATER,'>');
+	OPERATOR(LESS,'<');
+	OPERATOR(EXPT,'^');
+	OPERATOR(MOD,'%');
 	long i;
 	int q;
 	double f;
