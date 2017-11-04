@@ -28,21 +28,22 @@ NEW_SPECIAL_OP(ADD,"+");
 NEW_SPECIAL_OP(SUB,"-");
 NEW_SPECIAL_OP(MUL,"*");
 NEW_SPECIAL_OP(DIV,"/");
-NEW_SPECIAL_FORM(MOD);
+NEW_SPECIAL_OP(MOD,"%");
 NEW_SPECIAL_OP(GREATER,">");
 NEW_SPECIAL_OP(LESS,"<");
+NEW_SPECIAL_OP(EXPT,"^");
 NEW_SPECIAL_FORM(AND);
 NEW_SPECIAL_FORM(OR);
 NEW_SPECIAL_FORM(RANDOM);
 var_t *ENV;
-var_t *new_ivar(int i)
+var_t *new_ivar(long i)
 {
 	var_t *v=NEW(var_t);
 	v->type=INT;
 	v->data.i=i;
 	return v;
 }
-var_t *new_fvar(float f)
+var_t *new_fvar(double f)
 {
 	var_t *v=NEW(var_t);
 	v->type=FLOAT;

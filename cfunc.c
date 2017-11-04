@@ -42,9 +42,9 @@ var_t *display(var_t *var)
 			      return &NIL;
 		case VOID: printf("NIL");
 			   return &NIL;
-		case INT: printf("%i",var->data.i);
+		case INT: printf("%li",var->data.i);
 			  return &NIL;
-		case FLOAT: printf("%f",var->data.f);
+		case FLOAT: printf("%lf",var->data.f);
 			    return &NIL;
 		case CHAR: printf("%c",var->data.c);
 			   return &NIL;

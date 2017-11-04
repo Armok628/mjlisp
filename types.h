@@ -11,8 +11,8 @@ typedef enum {/**/ERROR,SPECIAL,VOID,/*Pseudo-types*/
 struct cell_t;
 typedef struct {
 	union {
-		int i;
-		float f;
+		long i;
+		double f;
 		char c;
 		char *s;
 		struct cell_t *l;

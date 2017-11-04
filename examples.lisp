@@ -11,12 +11,13 @@
   (define 'cxr (lambda (c l) (if c (eval '((if (eq (car c) 'a) car cdr) (cxr (cdr c) l))) l)))
   (define 'range (lambda (x s y) (if (or (and (> s 0) (> x y)) (and (< s 0) (< x y))) nil (cons x (range (+ x s) s y)))))
   (define 'nth (lambda (n l) (if (> n 0) (nth (- n 1) (cdr l)) (car l))))
+  (define '! (lambda (n) (if (> n 1) (* n (! (- n 1))) 1)))
 
   | Functions defined in terms of non-primitives: |
   (define 'print (lambda (l) (mapcar display (reverse l))))
   (define 'println (lambda (l) (progn (print l) (terpri))))
   (define 'splice (lambda (l) (reduce append l)))
   (define 'space (lambda (l) (cdr (splice (mapcar (lambda (x) '(\  x)) l)))))
-  (define 'iota (n) (range 0 1 n))
+  (define 'iota (lambda (n) (range 0 1 n)))
   (repl)
   )

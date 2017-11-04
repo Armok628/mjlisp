@@ -298,15 +298,16 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 		return &OR;
 	if (!strcasecmp("RANDOM",str))
 		return &RANDOM;
-	int i,q;
-	float f;
+	long i;
+	int q;
+	double f;
 	char *s;
 	var_t *v;
 	switch (infer_type(str)) {
 		case VOID: return &NIL;
-		case INT: sscanf(str,"%i",&i);
+		case INT: sscanf(str,"%li",&i);
 			  return new_ivar(i);
-		case FLOAT: sscanf(str,"%f",&f);
+		case FLOAT: sscanf(str,"%lf",&f);
 			  return new_fvar(f);
 		case CHAR: return new_cvar(str[1]);
 		case VARIABLE:
