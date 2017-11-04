@@ -228,14 +228,14 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
 	var_t *lex=*env;
-	lex=cons(cons(&SELF,func),lex);
-	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) {
+	for (var_t *v=car(func);v->type==CELL&&cdr(v);v=cdr(v)) { // Bind arguments
 		//printf("BINDING "); debug_display(car(v)); //printf(" TO "); debug_display(car(args)); terpri();
 		lex=cons(cons(car(v),car(args)),lex);
 		car(v)->type=SYMBOL;
 		args=cdr(args);
 	}
 	ASSERTM(args->type==VOID,"\nFatal error: Excess arguments in function application\n\n");
+	lex=cons(cons(&SELF,function),lex); // Bind function to local variable for anonymous recursion
 	//printf("LEXICAL ENV: "); debug_display(lex); terpri();
 	var_t *result=eval(car(cdr(func)),&lex);
 	//printf("DESTROY "); debug_display(func); terpri();
