@@ -20,6 +20,7 @@ datatype infer_type(char *input) // Decides type value for given input
 	//printf("INFER_TYPE\n");
 #define INPUT_MATCH(x) !strcasecmp(#x,input)
 #define OP_MATCH(x) (input[0]==x&&input[1]=='\0')
+	// Check for special forms
 	if (!strcasecmp("NIL",input))
 		return VOID;
 	if (!strcasecmp("CAR",input)
@@ -49,54 +50,65 @@ datatype infer_type(char *input) // Decides type value for given input
 			||OP_MATCH('<')
 			||OP_MATCH('^'))
 		return SPECIAL;
+	// Check for anything represented by a list
 	if (*input=='(') {
+		// Check for nil representation by ()
 		if (*(input+1)==')')
 			return VOID;
+		// Check for function definitions
 		char *lambda=malloc(7);
 		strncpy(lambda,input+1,6);
 		if (!strcasecmp("LAMBDA",lambda))
-			return FUNCTION;
+			return FUNCTION; // This tells to_var to behave differently
 		else
 			free(lambda);
+		// Go to the end of the input
 		for (;*input&&*input!=')';input++);
 		if (*input)
 			return CELL;
-		return ERROR;
+		return ERROR; // (If not properly terminated)
 	}
+	// Check for characters
 	if (*input=='\\') {
 		ASSERTM(strlen(input)<3,"\nFatal error: Escaped non-character\n\n");
 		return CHAR;
 	}
+	// Check for "quotations"
 	if (*input=='\'') {
+		// Check for quoted lists
 		if (*(input+1)=='(') {
 			bool v=true;
 			for (;*input&&*input!=')';input++)
 				if (!is_whitespace(*input))
 					v=false;
-			if (v)
+			if (v) // Check for nil representation by '()
 				return VOID;
 			if (*input)
 				return QUOTE;
 			return ERROR;
-		} else
+		} else // If it wasn't a list, it's a symbol
 			return SYMBOL;
 	}
+	// Check for numbers
 	int periods=0;
-	if (*input=='-')
-		input++;
+	if (*input=='-') // Skip the negative sign if there is one.
+		input++; // This is dealt with by to_var()
 	for (char *c=input;!is_whitespace(*c);c++) {
+		// Check for allowed characters
 		if (*c!='.'&&*c<'0'||*c>'9')
-			return VARIABLE;
+			return VARIABLE; // This lets variables begin with a number
+		// Count the periods
 		if (*c=='.')
 			periods++;
 	}
+	// Act with respect to the number of periods
 	switch (periods) {
 		case 0: return INT;
 		case 1: return FLOAT;
-		default: return ERROR;
+		default: return ERROR; // (Numbers should never have more than one period)
 	}
 }
-var_t *reference(var_t *term,var_t **env) // (cadr (assoc term env))
+var_t *reference(var_t *term,var_t **env) // (cdr (assoc term env))
 {
 	//printf("REFERENCE\n");
 	//printf("ENV: "); debug_display(*env); terpri();
@@ -104,16 +116,16 @@ var_t *reference(var_t *term,var_t **env) // (cadr (assoc term env))
 		*env=&NIL;
 		return &NIL;
 	}
-	if (term->type==VARIABLE)
-		term->type=SYMBOL;
-	for (var_t *e=*env;e->type==CELL&&cdr(e);e=cdr(e))
+	if (term->type==VARIABLE) // (Realistically, term should never be a symbol)
+		term->type=SYMBOL; // Definitions are made by symbol, not variable, and types must match.
+	for (var_t *e=*env;e->type==CELL&&cdr(e);e=cdr(e)) // assoc
 		if (eq(term,car(car(e)))==&T)
-			return cdr(car(e));
+			return cdr(car(e)); // cdr
 	return &NIL;
 }
 var_t *eval(var_t *form,var_t **env);
 var_t *subst(var_t *list,var_t **env);
-var_t *copy(var_t *var)
+var_t *copy(var_t *var) // Recursively copy a variable and its contents (if a list)
 {
 	////printf("COPY\n");
 	if (var->type==VOID||var->type==SPECIAL)
@@ -129,7 +141,7 @@ var_t *copy(var_t *var)
 	c->type=var->type;
 	return c;
 }
-void destroy(var_t *var)
+void destroy(var_t *var) // Recursively free a variable's memory
 {
 	if (!var||var->type==VOID||var->type==SPECIAL||var->type==FUNCTION)
 		return;
