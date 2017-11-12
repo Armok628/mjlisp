@@ -18,6 +18,6 @@
   (define 'println (lambda (l) (progn (print l) (terpri))))
   (define 'splice (lambda (l) (reduce append l)))
   (define 'space (lambda (l) (cdr (splice (mapcar (lambda (x) '(\  x)) l)))))
-  (define 'iota (lambda (n) (range 0 1 n)))
-  (repl)
+  (define 'iota (lambda (n) (range 1 1 n)))
+  (define '! (lambda (n) (reduce * (iota n))))
   )
