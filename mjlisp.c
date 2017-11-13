@@ -40,7 +40,7 @@ datatype infer_type(char *input) // Decides type value for given input
 			||INPUT_MATCH(AND)
 			||INPUT_MATCH(OR)
 			||INPUT_MATCH(RANDOM)
-			||INPUT_MATCH(EVAL_FILE)
+			||INPUT_MATCH(LOAD)
 			||OP_MATCH('+')
 			||OP_MATCH('-')
 			||OP_MATCH('*')
@@ -159,7 +159,7 @@ void destroy(var_t *var) // Recursively free a variable's memory
 	free(var);
 }
 var_t *read(char *str);
-var_t *eval_file(char *filename,var_t **env);
+var_t *load(char *filename,var_t **env);
 var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arguments in an environment
 {
 	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
@@ -221,9 +221,9 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		free(s);
 		return v;
 	}
-	if (function==&EVAL_FILE) {
-		ASSERTM(car(args)->type==SYMBOL,"\nFatal error: Non-symbol argument to EVAL_FILE\n\n");
-		return eval_file(car(args)->data.s,env);
+	if (function==&LOAD) {
+		ASSERTM(car(args)->type==SYMBOL,"\nFatal error: Non-symbol argument to LOAD\n\n");
+		return load(car(args)->data.s,env);
 	}
 	if (function==&EXIT)
 		exit(0);
@@ -283,7 +283,7 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 	SPECIAL_FORM(AND);
 	SPECIAL_FORM(OR);
 	SPECIAL_FORM(RANDOM);
-	SPECIAL_FORM(EVAL_FILE);
+	SPECIAL_FORM(LOAD);
 	OPERATOR(ADD,'+');
 	OPERATOR(SUB,'-');
 	OPERATOR(MUL,'*');
@@ -424,7 +424,7 @@ var_t *eval(var_t *form,var_t **env) // Evaluates a form. Mutual recursion with 
 	}
 	return form;
 }
-var_t *eval_file(char *filename,var_t **env)
+var_t *load(char *filename,var_t **env)
 {
 	FILE *input_file=fopen(filename,"r");
 	if (!input_file) {

@@ -6,7 +6,7 @@ int main(int argc,char **argv)
 {
 	srand(time(NULL));
 	if (argc==2) {
-		eval_file(argv[1],&ENV);
+		load(argv[1],&ENV);
 		return 0;
 	}
 	char *input=malloc(256),*c;
