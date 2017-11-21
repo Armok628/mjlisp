@@ -56,7 +56,7 @@ datatype infer_type(char *input) // Decides type value for given input
 		if (*(input+1)==')')
 			return VOID;
 		// Check for function definitions
-		char *lambda=malloc(7);
+		char *lambda=calloc(7,1);
 		strncpy(lambda,input+1,6);
 		if (!strcasecmp("LAMBDA",lambda))
 			return FUNCTION; // This tells to_var to behave differently
@@ -134,7 +134,7 @@ var_t *copy(var_t *var) // Recursively copy a variable and its contents (if a li
 	if (var->type==CELL||var->type==QUOTE||var->type==FUNCTION)
 		c=cons(copy(car(var)),copy(cdr(var)));
 	else if (var->type==SYMBOL||var->type==VARIABLE) {
-		c->data.s=malloc(strlen(var->data.s));
+		c->data.s=calloc(strlen(var->data.s)+1,1);
 		strcpy(c->data.s,var->data.s);
 	} else
 		c->data=var->data;
@@ -215,7 +215,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	}
 	if (function==&READ) {
 		ASSERTM(car(args)->type==INT,"\nFatal error: Read requires size argument\n\n");
-		char *s=malloc(car(args)->data.i+2);
+		char *s=calloc(car(args)->data.i+2,1);
 		fgets(s,car(args)->data.i+1,stdin);
 		var_t *v=read(s);
 		free(s);
@@ -306,7 +306,7 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 		case CHAR: return new_cvar(str[1]);
 		case VARIABLE:
 		case SYMBOL: q=*str=='\'';
-			     s=malloc(strlen(str)-q);
+			     s=calloc(strlen(str)-q+1,1);
 			     strcpy(s,str+q);
 			     var_t *sym=new_svar(s);
 			     if (!q)
@@ -331,7 +331,7 @@ var_t *read(char *str) // Tokenizes input into nested lists. Mutual recursion wi
 	str+=*str=='\'';
 	var_t *end=cons(NULL,&NIL),*start=end;
 	int parens=0;
-	char *token=malloc(strlen(str)),*marker=str;
+	char *token=calloc(strlen(str)+1,1),*marker=str;
 	for (char *c=str;*c;c++) {
 		// Character escape
 		if (parens==1&&*c=='\\') {
@@ -434,7 +434,7 @@ var_t *load(char *filename,var_t **env)
 	fseek(input_file,0,SEEK_END);
 	long length=ftell(input_file);
 	rewind(input_file);
-	char *input=malloc(length+1);
+	char *input=calloc(length+1,1);
 	fread(input,1,length,input_file);
 	var_t *result=eval(read(input),env);
 	free(input);
