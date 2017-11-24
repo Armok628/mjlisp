@@ -74,7 +74,7 @@ datatype infer_type(char *input) // Decides type value for given input
 	}
 	// Check for characters
 	if (*input=='\\') {
-		ASSERTM(strlen(input)<3,"\nFatal error: Escaped non-character\n\n");
+		ASSERTM(strlen(input)<3,"infer_type(): Escaped non-character");
 		return CHAR;
 	}
 	// Check for "quotations"
@@ -168,9 +168,9 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 {
 	//printf("APPLY "); debug_display(function); //printf(" TO "); debug_display(args); terpri();
 	//printf("ENV: "); debug_display(*env); terpri();
-	ASSERTM(function!=&NIL,"\nFatal error: NIL is not a function\n\n");
+	ASSERTM(function!=&NIL,"apply(): NIL is not a function");
 	ASSERTM(args->type==CELL||args->type==QUOTE||args->type==VOID
-			,"\nFatal error: Arguments not formatted as list\n\n");
+			,"apply(): Arguments not formatted as list");
 	// Special forms are defined here (typically using functions in cfunc.c)
 	if (function==&PROGN) {
 		var_t *v=args;
@@ -204,7 +204,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	if (function==&ATOM)
 		return atom(car(args));
 	if (function==&DEFINE) {
-		ASSERTM(car(args)->type==SYMBOL,"\nFatal error: Non-symbols can not be defined\n\n");
+		ASSERTM(car(args)->type==SYMBOL,"DEFINE: Non-symbols can not be defined");
 		*env=cons(cons(car(args),car(cdr(args))),*env);
 		car(args)->type=SYMBOL;
 		//printf("NEW ENV: "); debug_display(*env); terpri();
@@ -218,7 +218,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		return eval(car(args),env);
 	}
 	if (function==&READ) {
-		ASSERTM(car(args)->type==INT,"\nFatal error: Read requires size argument\n\n");
+		ASSERTM(car(args)->type==INT,"READ: Size argument required");
 		char *s=calloc(car(args)->data.i+2,1);
 		fgets(s,car(args)->data.i+1,stdin);
 		var_t *v=read(s);
@@ -226,11 +226,11 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		return v;
 	}
 	if (function==&LOAD) {
-		ASSERTM(car(args)->type==SYMBOL,"\nFatal error: Non-symbol argument to LOAD\n\n");
+		ASSERTM(car(args)->type==SYMBOL,"LOAD: Non-symbol argument");
 		return load(car(args)->data.s,env);
 	}
 	if (function==&SET) {
-		ASSERTM(car(args)!=&NIL,"\nFatal error: Undefined argument to SET\n\n");
+		ASSERTM(car(args)!=&NIL,"SET: Undefined argument");
 		CAR(args)->type=car(cdr(args))->type;
 		CAR(args)->data=car(cdr(args))->data;
 		return car(args);
@@ -249,10 +249,10 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 	if (function==&LESS)
 		return car(args)->data.i<car(cdr(args))->data.i?&T:&NIL;
 	if (function==&RANDOM) {
-		ASSERTM(car(args)->type==INT,"\nFatal error: Non-integer argument to RANDOM\n\n");
+		ASSERTM(car(args)->type==INT,"RANDOM: Non-integer argument");
 		return new_ivar(rand()%car(args)->data.i);
 	}
-	ASSERTM(function->type==FUNCTION,"\nFatal error: Non-functions can not be applied\n\n");
+	ASSERTM(function->type==FUNCTION,"apply(): Non-functions can not be applied");
 	//printf("COPY "); debug_display(function); terpri();
 	var_t *func=copy(function);
 	var_t *lex=*env;
@@ -262,7 +262,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		car(v)->type=SYMBOL;
 		args=cdr(args);
 	}
-	ASSERTM(args->type==VOID,"\nFatal error: Excess arguments in function application\n\n");
+	ASSERTM(args->type==VOID,"apply(): Excess arguments in function application");
 	lex=cons(cons(&SELF,function),lex); // Bind function to local variable for anonymous recursion
 	//printf("LEXICAL ENV: "); debug_display(lex); terpri();
 	var_t *result=eval(car(cdr(func)),&lex);

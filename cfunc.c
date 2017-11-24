@@ -6,7 +6,7 @@
 
 #ifndef CFUNC_H
 #define CFUNC_H
-#define ASSERTM(x,m) if (!(x)) {printf(m); exit(1);}
+#define ASSERTM(x,m) if (!(x)) {printf("\nFatal error: " m "\n\n"); exit(1);}
 var_t *cons(var_t *var1,var_t *var2)
 {
 	var_t *c=NEW(var_t);
@@ -20,7 +20,7 @@ var_t *car(var_t *var)
 {
 	ASSERTM(var->type==CELL||var->type==QUOTE
 			||var->type==VOID||var->type==FUNCTION
-			,"\nFatal error: Invalid datatype for argument to CAR\n\n");
+			,"car(): Invalid argument datatype");
 	if (var==&NIL)
 		return &NIL;
 	return var->data.l->car;
@@ -29,7 +29,7 @@ var_t *cdr(var_t *var)
 {
 	ASSERTM(var->type==CELL||var->type==QUOTE
 			||var->type==VOID||var->type==FUNCTION
-			,"\nFatal error: Invalid datatype for argument to CDR\n\n");
+			,"cdr(): Invalid argument datatype");
 	if (var==&NIL)
 		return &NIL;
 	return var->data.l->cdr;
@@ -94,8 +94,8 @@ var_t *terpri()
 // Arithmetic
 var_t *arith(var_t *v1,var_t *v2,char op)
 {
-	ASSERTM(v1->type==INT||v1->type==FLOAT,"\nFatal error: First argument not a number\n\n");
-	ASSERTM(v2->type==INT||v2->type==FLOAT,"\nFatal error: Second argument not a number\n\n");
+	ASSERTM(v1->type==INT||v1->type==FLOAT,"arith(): First argument not a number");
+	ASSERTM(v2->type==INT||v2->type==FLOAT,"arith(): Second argument not a number");
 	var_t *result=NEW(var_t);
 	result->type=INT;
 	if (v1->type==FLOAT||v2->type==FLOAT
