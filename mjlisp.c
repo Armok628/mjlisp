@@ -11,6 +11,9 @@
 #ifndef MJLISP_H
 #define MJLISP_H
 #include "debug.h"
+// Used to retrieve lval:
+#define CAR(x) (x->data.l->car)
+#define CDR(x) (x->data.l->cdr)
 bool is_whitespace(char c)
 {
 	return c==' '||c=='\n'||c=='\t'||c=='\0';
@@ -41,6 +44,7 @@ datatype infer_type(char *input) // Decides type value for given input
 			||INPUT_MATCH(OR)
 			||INPUT_MATCH(RANDOM)
 			||INPUT_MATCH(LOAD)
+			||INPUT_MATCH(SET)
 			||OP_MATCH('+')
 			||OP_MATCH('-')
 			||OP_MATCH('*')
@@ -225,6 +229,12 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		ASSERTM(car(args)->type==SYMBOL,"\nFatal error: Non-symbol argument to LOAD\n\n");
 		return load(car(args)->data.s,env);
 	}
+	if (function==&SET) {
+		ASSERTM(car(args)!=&NIL,"\nFatal error: Undefined argument to SET\n\n");
+		CAR(args)->type=car(cdr(args))->type;
+		CAR(args)->data=car(cdr(args))->data;
+		return car(args);
+	}
 	if (function==&EXIT)
 		exit(0);
 #define ARITH_OP(n,c) if (function==&n) return arith(car(args),car(cdr(args)),c)
@@ -284,6 +294,7 @@ var_t *to_var(char *str) // Converts input string (see read) into a real variabl
 	SPECIAL_FORM(OR);
 	SPECIAL_FORM(RANDOM);
 	SPECIAL_FORM(LOAD);
+	SPECIAL_FORM(SET);
 	OPERATOR(ADD,'+');
 	OPERATOR(SUB,'-');
 	OPERATOR(MUL,'*');
@@ -347,7 +358,7 @@ var_t *read(char *str) // Tokenizes input into nested lists. Mutual recursion wi
 			for (;*c!=')';c++); // Skip to the end of the form
 			strncpy(token,marker,c-marker);
 			token[c-marker]='\0';
-			end->data.l->cdr=to_var(token);
+			CDR(end)=to_var(token);
 			//printf("|%s| ",token); debug_display(cdr(end)); terpri();
 			break;
 		}
@@ -367,11 +378,11 @@ var_t *read(char *str) // Tokenizes input into nested lists. Mutual recursion wi
 			token[c-marker-1]='\0';
 			marker=c;
 ADD_TOKEN:		if (car(start)) {
-				end->data.l->cdr=cons(&NIL,&NIL);
+				CDR(end)=cons(&NIL,&NIL);
 				end=cdr(end);
-				end->data.l->car=to_var(token);
+				CAR(end)=to_var(token);
 			} else {
-				start->data.l->car=to_var(token);
+				CAR(start)=to_var(token);
 			}
 			//printf("|%s| ",token); debug_display(car(end)); terpri();
 			if (parens==0)
@@ -416,7 +427,7 @@ var_t *eval(var_t *form,var_t **env) // Evaluates a form. Mutual recursion with 
 	}
 	if (form->type==CELL) {
 		if (car(form)->type==VARIABLE)
-			form->data.l->car=reference(car(form),env);
+			CAR(form)=reference(car(form),env);
 		if (car(form)->type==FUNCTION||car(form)->type==SPECIAL)
 			return apply(car(form),cdr(form),env);
 		else
