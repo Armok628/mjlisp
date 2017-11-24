@@ -72,10 +72,10 @@ var_t *display(var_t *var)
 }
 var_t *eq(var_t *v1,var_t *v2)
 {
-	if (v1->type!=v2->type)
-		return &NIL;
 	if (v1->type==SYMBOL||v1->type==VARIABLE)
 		return v1==v2||!strcmp(v1->data.s,v2->data.s)?&T:&NIL;
+	if (v1->type!=v2->type)
+		return &NIL;
 	if (v1->type==VOID&&v2->type==VOID)
 		return &T;
 	if (v1->type!=CELL&&v1->type!=QUOTE)

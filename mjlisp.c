@@ -221,6 +221,7 @@ var_t *apply(var_t *function,var_t *args,var_t **env) // Apply a function to arg
 		ASSERTM(car(args)->type==INT,"READ: Size argument required");
 		char *s=calloc(car(args)->data.i+2,1);
 		fgets(s,car(args)->data.i+1,stdin);
+		s[strlen(s)-1]='\0';
 		var_t *v=read(s);
 		free(s);
 		return v;
