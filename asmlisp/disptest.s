@@ -1,8 +1,8 @@
 .include "macros.s"
 .include "asmfuncs.s"
 
-.dbug:
-	.string "debug"
+test:
+	.string "sym"
 
 .globl	main
 .type	main, @function
@@ -15,8 +15,8 @@ main:
 	call	new_var
 	pushq	%rax
 
-	movq	$20, %rdi
-	movq	$2, %rsi
+	leaq	test(%rip), %rdi
+	movq	$1, %rsi
 	call	new_var
 	pushq	%rax
 

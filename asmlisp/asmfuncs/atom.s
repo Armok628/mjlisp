@@ -1,8 +1,8 @@
 .type	atom, @function
 atom:
-	leaq	.NIL(%rip), %rax
+	movq	NIL(%rip), %rax
 	cmpq	$0, (%rdi)
 	jz	.atomq
-	leaq	.T(%rip), %rax
+	movq	T(%rip), %rax
 	.atomq:
 	ret

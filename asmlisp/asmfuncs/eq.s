@@ -1,6 +1,9 @@
 .type	eq, @function
 eq:
-	leaq	.NIL(%rip), %rax
+	leaq	T(%rip), %rax
+	cmpq	%rdi, %rsi
+	je	.eqret
+	leaq	NIL(%rip), %rax
 	# Check datatype
 	cmpq	$0, (%rdi) # Check if cell
 	je	.eqret
@@ -15,15 +18,15 @@ eq:
 	movq	8(%rdi), %rcx
 	cmpq	%rcx, 8(%rsi) # Compare number
 	jne	.eqret
-	leaq	.T(%rip), %rax
+	leaq	T(%rip), %rax
 	jmp	.eqret
 	.eqsym:
-	cdr	%rdi
-	cdr	%rsi
+	movq	8(%rdi), %rdi
+	movq	8(%rsi), %rsi
 	call	strcmp@plt
 	cmp	$0, %rax
-	leaq	.T(%rip), %rax
-	je	.eqret
-	leaq	.NIL(%rip), %rax
+	leaq	T(%rip), %rax
+	jz	.eqret
+	leaq	NIL(%rip), %rax
 	.eqret:
 	ret

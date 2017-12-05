@@ -2,8 +2,6 @@
 	.string "%li"
 .fstr:
 	.string "%s"
-.fnil:
-	.string "NIL"
 
 .type	disp, @function
 disp:
@@ -17,14 +15,13 @@ disp:
 	je	.disp_num
 	jmp	.disp_exit # Unknown datatype
 	.disp_nil:
-	leaq	.fnil(%rip), %rdi
+	leaq	NILstr(%rip), %rdi
 	zero	%rax
 	call	printf@plt
 	jmp	.disp_exit
 	.disp_sym:
-	call	car
+	movq	8(%rdi), %rsi
 	leaq	.fstr(%rip), %rdi
-	movq	%rax, %rsi
 	zero	%rax
 	call	printf@plt
 	jmp	.disp_exit

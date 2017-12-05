@@ -1,6 +1,11 @@
-.NIL:
+NILstr:
+	.string "NIL"
+NIL:
 	.quad	1
-	.quad	0
-.T:
+	.quad	NILstr
+
+Tstr:
+	.string	"T"
+T:
 	.quad	1
-	.quad	-1
+	.quad	Tstr
