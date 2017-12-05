@@ -1,6 +1,8 @@
 # mjlisp
 Amateur LISP interpreter in pure C with no research
 
+*Update, 12/5/17:  I added a bunch of assembly stuff that I could possibly use later, but none of it is in use at the moment*
+
 I am aware of the "Build Your Own Lisp" book, but I haven't read any part of it. I guess you'll just have to take my word for it, but if there's any similarity at all, it's purely by coincidence. At the start of this project, I was an incoming college freshman intent on majoring in Computer Engineering. The interpreter was fully functional by the start of school, but I have since begun improving it from time to time.
 
 This Lisp is slightly different in that the backquote/unquote feature in Common Lisp exists, but in a different form. The apostrophe represents not fully evaluating (or "quoting") the following data, and applies only to cells and symbols. In short, unquoted symbols will be always replaced with their symbol-value, and unquoted cells will always represent function application, even inside quoted lists.
