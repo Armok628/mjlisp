@@ -1,5 +1,4 @@
-.include "macros.s"
-.include "asmfuncs.s"
+.include "inclusions.s"
 
 test:
 	.string "sym"

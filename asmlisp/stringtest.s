@@ -1,5 +1,4 @@
-.include "macros.s"
-.include "strings.s"
+.include "inclusions.s"
 
 .test:
 	.string "test"

@@ -1,6 +1,4 @@
-.include "macros.s"
-.include "strings.s"
-.include "asmfuncs.s"
+.include "inclusions.s"
 
 dbug:
 	.string "debug"

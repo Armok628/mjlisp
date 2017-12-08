@@ -8,11 +8,11 @@
 .endm
 
 .macro	car	reg
-	movq	(\reg), \reg
+	movq	8(\reg), \reg
 .endm
 
 .macro	cdr	reg
-	movq	8(\reg), \reg
+	movq	16(\reg), \reg
 .endm
 
 .macro	error	code msg
