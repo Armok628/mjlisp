@@ -13,6 +13,8 @@
   (define 'nth (lambda (n l) (if (> n 0) (nth (- n 1) (cdr l)) (car l))))
   (define '! (lambda (n) (if (> n 1) (* n (! (- n 1))) 1)))
   (define 'fold (lambda (func l) (if (cdr l) (cons (func (car l) (car (cdr l))) (fold func (cdr l))) nil)))
+  (define 'length (lambda (l) (if l (+ 1 (length (cdr l))) 0)))
+  (define 'avg (lambda (l) (/ (reduce + l) (length l))))
 
   | Functions defined in terms of non-primitives: |
   (define 'print (lambda (l) (mapcar display (reverse l))))
