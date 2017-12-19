@@ -1,10 +1,13 @@
 .type	cons, @function
 cons:
-	pushq	%rsi
-	pushq	%rdi
 	movq	$24, %rdi
 	call	malloc@plt
-	movq	$0, (%rax) # Datatype
-	popq	8(%rax) # car
-	popq	16(%rax) # cdr
+	popq	%rdi		# preserve return address
+	movq	$0, (%rax)	# type = cell
+	movq	8(%rsp), %rcx
+	movq	%rcx, 8(%rax)	# car = arg1
+	movq	(%rsp), %rcx
+	movq	%rcx, 16(%rax)	# cdr = arg2
+	movq	%rax, 8(%rsp)	# return cell (where arg1 was)
+	movq	%rdi, (%rsp)	# restore return address (where arg2 was)
 	ret

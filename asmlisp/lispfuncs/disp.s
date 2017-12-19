@@ -1,12 +1,14 @@
-.fnum:
+fnum:
 	.string "%li"
-.fstr:
+fstr:
 	.string "%s"
 
 .type	disp, @function
 disp:
-	cmp	$0, %rdi
-	jz	.disp_nil
+	movq	8(%rsp), %rdi
+	call	zornil
+	cmp	$1, %rdi
+	je	.disp_nil
 	cmp	$0, (%rdi)
 	jz	.disp_cell
 	cmp	$1, (%rdi)
@@ -21,48 +23,57 @@ disp:
 	jmp	.disp_exit
 	.disp_sym:
 	movq	8(%rdi), %rsi
-	leaq	.fstr(%rip), %rdi
-	zero	%rax
+	leaq	fstr(%rip), %rdi
+	xorq	%rax, %rax
 	call	printf@plt
 	jmp	.disp_exit
 	.disp_num:
-	call	car
-	leaq	.fnum(%rip), %rdi
-	movq	%rax, %rsi
-	zero	%rax
+	movq	8(%rdi), %rsi
+	leaq	fnum(%rip), %rdi
+	xorq	%rax, %rax
 	call	printf@plt
 	jmp	.disp_exit
 	.disp_cell:
-	pushq	%rdi # Temporarily store the cell
 	movq	$40, %rdi
 	call	putchar@plt # (
-	popq	%rdi # Recall the cell
+
+	pushq	8(%rsp) # Push the cell to the stack
 	.disp_cell_l:
-	pushq	%rdi # Put the cell on the stack e.g. (10 20)
-	chain	car # e.g. 10
-	call	disp # Print the head
+	call	dup # Duplicate the list
+	call	car # Replace duplicate with head
+	call	disp # Print the head (and drop from stack)
+
 	movq	$32, %rdi
 	call	putchar@plt # space
-	popq	%rdi # Get the cell e.g. (10 20)
-	chain	cdr # e.g. (20)
-	cmpq	$0, %rdi # Is tail null?
+
+	call	cdr # Get the cell's tail
+	call	zornil # Is it null?
+	cmpq	$1, %rax
 	jz	.disp_cell_lx 
+	movq	(%rsp), %rdi
 	cmpq	$0, (%rdi) # Is tail another list?
 	jz	.disp_cell_l
-	pushq	%rdi # Tail must be a non-nil atom
+
+	# Tail must be a non-nil atom
 	movq	$46, %rdi # .
 	call	putchar@plt
 	movq	$32, %rdi # space
 	call	putchar@plt
-	popq	%rdi
+
+	pushq	(%rsp) # LAZY HACK: Dupe so disp_cell_lx has something to remove
 	call	disp
+
 	movq	$32, %rdi # space
 	call	putchar@plt
+
 	.disp_cell_lx: # Done printing list
+	popq	%rdi # Drop top stack item
 	movq	$8, %rdi
 	call	putchar@plt # backspace (LAZY HACK)
 	movq	$41, %rdi
 	call	putchar@plt # )
+
 	.disp_exit:
-	zero	%rax
+	popq	%rdi # preserve return address
+	movq	%rdi, (%rsp) # clobber top stack item with return address
 	ret

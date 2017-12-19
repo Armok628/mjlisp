@@ -1,17 +1,22 @@
 .type	car, @function
 car:
-	cmpq	$0, (%rdi)
-	jne	.nil_ret
-	movq	8(%rdi), %rax
+	movq	8(%rsp), %rax
+	cmpq	$0, (%rax)
+	jnz	.nil_ret
+	movq	8(%rax), %rax
+	movq	%rax, 8(%rsp)
 	ret
 
 .type	cdr, @function
 cdr:
-	cmpq	$0, (%rdi)
-	jne	.nil_ret
-	movq	16(%rdi), %rax
+	movq	8(%rsp), %rax
+	cmp	$0, (%rax)
+	jnz	.nil_ret
+	movq	16(%rax), %rax
+	movq	%rax, 8(%rsp)
 	ret
 
 .nil_ret:
 	leaq	NIL(%rip), %rax
+	movq	%rax, 8(%rsp)
 	ret

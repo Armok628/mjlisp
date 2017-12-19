@@ -2,6 +2,8 @@
 .include "utils/strings.s"
 .include "utils/consts.s"
 .include "utils/new_var.s"
+.include "utils/stack.s"
+.include "utils/zornil.s"
 .include "lispfuncs/car_cdr.s"
 .include "lispfuncs/cons.s"
 .include "lispfuncs/atom.s"

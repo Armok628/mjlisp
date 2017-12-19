@@ -1,0 +1,57 @@
+# Stack-oriented functions meant to be called in succession, Forth-style
+.type	dup, @function
+dup:
+	popq	%rdi
+	pushq	(%rsp)
+	pushq	%rdi
+	ret
+.type	inc, @function
+inc:				# : inc 1 + ;
+	incq	8(%rsp)
+	ret
+.type	dub, @function
+dub:				# : dub dup + ;
+	movq	8(%rsp), %rax
+	addq	%rax, 8(%rsp)
+	ret
+.type	sub, @function
+sub:				# : sub - ;
+	popq	%rdi
+	popq	%rax
+	subq	%rax, (%rsp)
+	pushq	%rdi
+	ret
+.type	swap, @function
+swap:
+	movq	8(%rsp), %rax
+	movq	16(%rsp), %rcx
+	movq	%rax, 16(%rsp)
+	movq	%rcx, 8(%rsp)
+	ret
+.type	drop, @function
+drop:
+	popq	%rdi
+	popq	%rsi
+	movq	%rsi, (%rsp)
+	pushq	%rdi
+	ret
+.type	emit, @function
+emit:
+	movq	8(%rsp), %rdi
+	call	putchar@plt
+	call	drop
+	ret
+.type	cr, @function
+cr:				# Identical to terpri
+	movq	$10, %rdi
+	call	putchar@plt
+	ret
+.type	pick, @function
+pick:				# untested
+	popq	%rdi
+	movq	(%rsp), %rax
+	incq	%rax
+	movq	(%rsp,%rax,8), %rax
+	pushq	%rax
+	pushq	%rdi
+	ret

@@ -1,5 +1,9 @@
 .type	eq, @function
 eq:
+	# LAZY HACK: Get arguments from stack
+	movq	16(%rsp), %rdi
+	movq	8(%rsp), %rsi
+
 	leaq	T(%rip), %rax
 	cmpq	%rdi, %rsi
 	je	.eqret
@@ -29,4 +33,7 @@ eq:
 	jz	.eqret
 	leaq	NIL(%rip), %rax
 	.eqret:
+	popq	%rdi # Preserve return address
+	movq	%rax, 8(%rsp) # Return value on stack (where arg1 was)
+	movq	%rdi, (%rsp) # Restore return address (where arg2 was)
 	ret

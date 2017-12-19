@@ -1,6 +1,6 @@
 .include "inclusions.s"
 
-test:
+teststr:
 	.string "sym"
 
 .globl	main
@@ -14,7 +14,7 @@ main:
 	call	new_var
 	pushq	%rax
 
-	leaq	test(%rip), %rdi
+	leaq	teststr(%rip), %rdi
 	movq	$1, %rsi
 	call	new_var
 	pushq	%rax
@@ -22,18 +22,12 @@ main:
 	movq	$30, %rdi
 	movq	$2, %rsi
 	call	new_var
+	pushq	%rax
 
-	movq	%rax, %rsi
-	popq	%rdi
-	call	cons # (20 . 30)
-	movq	%rax, %rsi	
-	popq	%rdi
-	chain	cons # (10 20 . 30)
-
+	call	cons # (sym . 30)
+	call	cons # (10 sym . 30)
 	call	disp
-	movq	$10, %rdi
-	call	putchar@plt
+	call	terpri
 
-	popq	%rbp
-	zero	%rax
+	leave
 	ret

@@ -1,7 +1,15 @@
 .include "inclusions.s"
 
-.iform:
-	.string "%i\n"
+iform:
+	.string "%li\n"
+.type	printint, @function
+printint:
+	leaq	iform(%rip), %rdi
+	movq	8(%rsp), %rsi
+	xorq	%rax, %rax
+	call	printf@plt
+	call	drop
+	ret
 
 .globl	main
 .type	main, @function
@@ -9,24 +17,14 @@ main:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	# Pretend these are addresses
-	movq	$1, %rdi
-	movq	$2, %rsi
-	chain	cons
-
-	pushq	%rax
+	pushq	$1
+	pushq	$2
+	call	cons
+	call	dup
 	call	car
-	movq	%rax, %rsi
-	leaq	.iform(%rip), %rdi
-	zero	%rax
-	call	printf@plt
-
-	popq	%rdi
+	call	printint
 	call	cdr
-	movq	%rax, %rsi
-	leaq	.iform(%rip), %rdi
-	zero	%rax
-	call	printf@plt
+	call	printint
 
-	popq	%rbp
-	zero	%rax
+	leave
 	ret
