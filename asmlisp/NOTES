@@ -107,7 +107,77 @@ funcall:
 	popq	%rbp
 
 (I've ignored return values for now. The relevant section would be after .funcall_exit.)
-Under this scheme, the top of the stack is the address to a "function".
+Under this scheme, the top of the stack is the address to the "function".
 This means the argument accessing functions would need to skip another 8 bytes on the stack.
 However, this could allow for easy recursion in the form of MJLisp's currect # (self) operator.
 (Note to self: @ would have made more sense since it looks like a loop)
+
+Another idea: The way retrieving arguments is handled could be similar to the way literals are handled.
+So this function
+	(define 'f (lambda (x y) (/ 2 (- x y))))
+might look like this in memory:
++0:	0x0			{push literal}
++8:	0xDEADBEEFDEADBEE1	[2]
++16:	0x1			{push argument}
++24:	0x1			{first argument}
+#	(Note: 0x0 would then be the function itself)
++32:	0x1			{push argument}
++40:	0x2			{second argument}
++48:	0xDEADBEEFDEADBEE2	[sub]
++56:	0xDEADBEEFDEADBEE3	[div]
++64:	0xDEADBEEFDEADBEE4	[return2]
+
+Of course, I could maybe use 4-byte chunks to save space.
+I'll rewrite funcall with argument pushing included
+
+funcall:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	movq	8(%rsp), %rax # Load the pointer to the function
+	xorq	%rcx, %rcx # Set the counter to 0
+	.funcall_loop
+	movq	(%rax,%rcx,8), %rdx # Load the next address
+	cmpq	$0, %rdx
+	jz	.funcall_pushq
+	cmpq	$1, %rdx
+	je	.funcall_pusharg
+	call	*%rdx
+	jmp	.funcall_loop
+	.funcall_pushq:
+	incq	%rcx
+	movq	(%rax,%rcx,8), %rdx # Load the literal to be pushed
+	cmpq	$0, %rdx
+	jz	.funcall_exit # If null, exit (so 0x0 0x0 denotes the end of the function)
+	pushq	%rdx
+	incq	%rcx
+	jmp	.funcall_loop
+	.funcall_pusharg:
+	incq	%rcx
+	movq	(%rax,%rcx,8), %rdx
+	addq	$2, %rdx
+	pushq	(%rbp,%rdx,8)
+	incq	%rcx
+	jmp	.funcall_loop:
+	.funcall_exit
+	# At this point there must only be one thing on the stack
+	popq	%rdx # Take that thing off the stack
+	movq	%rbp, %rsp # Reset the stack
+	popq	%rbp
+	popq	%rdi # Preserve the return address
+	pushq	%rdx
+	pushq	%rdi # Restore the return address
+	ret
+
+There are two remaining issues.
+
+The most obvious issue is with returning the value left on the stack. This will vary by number of arguments.
+How many times do we call drop before we leave the return value on the stack?
+One idea I have for this is to leave a 0x0 on the stack and drop up to it. However, this is a really sloppy solution.
+Perhaps the best option is to make the first 8 bytes of a function represent the number of arguments
+
+The bigger issue with this approach (as a whole) is branching. How might an 'if' or 'cond' be implemented?
+In Forth, if works like this (to print zero if the top of the stack is zero):
+: zero 0 = if ." zero" else ." non-zero" then cr ;
+However, this is a compile-only feature.
+This could maybe be implemented as a flag which decides whether to go through with function calls.
+I think that solution is fairly sloppy.
