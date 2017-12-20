@@ -48,10 +48,8 @@ cr:				# Identical to terpri
 	ret
 .type	pick, @function
 pick:				# untested
-	popq	%rdi
-	movq	(%rsp), %rax
+	movq	8(%rsp), %rax
 	incq	%rax
 	movq	(%rsp,%rax,8), %rax
-	pushq	%rax
-	pushq	%rdi
+	movq	%rax, 8(%rsp)
 	ret

@@ -1,0 +1,113 @@
+Now that I'm able to use threaded code, I need to think about how to transform LISP into something that resembles Forth
+
+I'll suppose I have this function:
+	(define 'f (lambda (x y) (* 2 (+ x y))))
+The answer is simple, looking at it as a human:
+	: f + 2 *
+Now let's suppose the function's result depends on the arguments being in the right order:
+	(define 'f (lambda (x y) (/ 2 (- x y))))
+This would become:
+	: f - 2 swap / ;
+This is an acceptable result, but how would the compiler handle the arguments automatically?
+As a human, I can easily visualize changes to the stack with each function call.
+How can I automate this, and how would it translate into threaded code?
+
+I could see functions for fetching each argument. For example:
+fetch1:
+	popq	%rdi
+	pushq	(%rsp)
+	pushq	%rdi
+	ret
+fetch2:
+	popq	%rdi
+	pushq	8(%rsp)
+	pushq	%rdi
+	ret
+
+This could be generalized, maybe like so:
+pick:
+	popq	%rdi
+	popq	%rax
+	pushq	(%rsp,%rax,8)
+	pushq	%rdi
+	ret
+Better yet, without push or pop:
+pick:
+	movq	8(%rsp), %rax
+	addq	$2, %rax
+	movq	(%rsp,%rax,8), %rax
+	movq	%rax, 8(%rsp)
+	ret
+
+Now the issue is, how do I push literal values to the stack with only function calls?
+I can't (or shouldn't) just make a function for every literal I might want to push.
+After all, real languages that already exist have limits to the number of arguments they can take.
+
+If I had a solution to this, I could translate
+	(define 'f (lambda (x y) (/ 2 (- x y))))
+into
+	# eval (/ 2 (- x y))
+	call	push2 # I will need to figure out how to deal with these kinds of literals as well
+	# eval (- x y) :
+	# (
+	call	fetch1
+	call	fetch2
+	call	sub
+	# )
+	call	div
+	call	return2
+
+I need another stack...
+I could try addressing arguments relative to %rbp.
+If functions began by updating %rbp, maybe a function arg1 could be
+arg1:
+	# (%rbp) would be previous base pointer
+	# 8(%rbp) would be the return address
+	popq	%rdi
+	pushq	16(%rbp) # arg1
+	pushq	%rdi
+	ret
+
+Then the function would be
+	#(
+	{push 2 somehow}
+	#(
+	call	arg1
+	call	arg2
+	call	sub
+	#)
+	call	div
+	#)
+	call	return
+
+To avoid the headache of literals for the moment, I'm going to reflect on what a function would look like in memory.
+Ideally, it would be just a list of addresses of functions to call.
+I could have null mean that the next address is a literal to be pushed...
+Maybe it would look like this:
+
+funcall:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	movq	8(%rsp), %rax
+	.funcall_loop:
+	movq	(%rax), %rcx # Moving an address
+	cmpq	$0, %rcx
+	jz	.funcall_pushliteral
+	call	*%rcx
+	addq	$8, %rax # Next address
+	jmp	.funcall_l
+	.funcall_pushliteral:
+	cmpq	$0, 8(%rax)
+	jz	.funcall_exit # Never two 0x0 in a row
+	pushq	8(%rax)
+	addq	$16, %rax
+	jmp	.funcall_loop
+	.funcall_exit:
+	movq	%rbp, %rsp
+	popq	%rbp
+
+(I've ignored return values for now. The relevant section would be after .funcall_exit.)
+Under this scheme, the top of the stack is the address to a "function".
+This means the argument accessing functions would need to skip another 8 bytes on the stack.
+However, this could allow for easy recursion in the form of MJLisp's currect # (self) operator.
+(Note to self: @ would have made more sense since it looks like a loop)
