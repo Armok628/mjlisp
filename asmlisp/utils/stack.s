@@ -53,3 +53,9 @@ pick:				# untested
 	movq	(%rsp,%rax,8), %rax
 	movq	%rax, 8(%rsp)
 	ret
+.type	over, @function
+over:
+	popq	%rdi
+	pushq	8(%rsp)
+	pushq	%rdi
+	ret
