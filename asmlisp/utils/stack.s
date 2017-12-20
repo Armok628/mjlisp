@@ -30,8 +30,7 @@ swap:
 	ret
 .type	drop, @function
 drop:
-	popq	%rax
-	movq	%rax, (%rsp)
+	popq	8(%rsp)
 	ret
 .type	emit, @function
 emit:

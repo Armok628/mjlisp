@@ -14,7 +14,7 @@ printint:
 	xorq	%rax, %rax
 	call	printf@plt
 	call	swap
-	call	drop
+	addq	$8, %rsp
 	ret
 
 .globl	main
@@ -41,7 +41,7 @@ main:
 	leaq	NIL(%rip), %rax
 	pushq	%rax
 	call	cons
-	call	cons
+	call	cons # (20 sym)
 
 	movq	$30, %rdi
 	movq	$2, %rsi
@@ -51,10 +51,9 @@ main:
 	leaq	NIL(%rip), %rax
 	pushq	%rax
 
-	# (10 (20 sym) 30)
 	call	cons
 	call	cons
-	call	cons
+	call	cons # (10 (20 sym) 30)
 	call	dup
 	call	disp
 	call	terpri

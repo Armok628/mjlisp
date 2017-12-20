@@ -280,3 +280,9 @@ lambda_size: # Predicts the size of the compiled body
 
 I would write lambda now, but I can't test lambda_size until I implement read, so that's probably next.
 Actually, cancel that, but it will only be able to be tested with literals.
+
+Now that I think of it, a lot of the issues with register preservation wouldn't be a problem if I didn't call other functions.
+What I mean is, I can replace "call dup" with "push (%rsp)" and "call drop" with "addq $8, %rsp" or "popq 8(%rsp)"
+This would be more efficient, but could reduce the readability of the assembly (if no comments were added).
+For places where a function call is required, I could impose my own calling convention to keep things standard,
+e.g. r14 and r15 are reserved for use by funcall to preserve %rax and %rcx around call *%rdx

@@ -1,5 +1,5 @@
 .type	lambda_size, @function
-lambda_size: # Predicts the size of the compiled body
+lambda_size: # Predicts the size of the compiled body, not including # of args (8 bytes) or trailing 0x0 0x0 (16 bytes)
 	xorq	%r8, %r8
 	pushq	8(%rsp)
 	.lambda_size_loop:
@@ -29,6 +29,6 @@ lambda_size: # Predicts the size of the compiled body
 	call	cdr
 	jmp	.lambda_size_loop
 	.lambda_size_ret:
-	call	drop
+	popq	8(%rsp)
 	movq	%r8, 8(%rsp)
 	ret
