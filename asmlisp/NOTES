@@ -224,6 +224,7 @@ funcall:
 	popq	%rbp
 	popq	%rdi # Preserve the return address
 	movq	(%rax), %rcx # Store the number of variables
+	negq	%rcx
 	incq	%rcx # +1 for function address left on stack
 	.funcall_dropargs:
 	call	drop
@@ -233,3 +234,48 @@ funcall:
 	pushq	%rdx
 	pushq	%rdi # Restore the return address
 	ret
+
+Problem 2 can be solved later.
+Note: %r8 and %r9 are expected to be unused by any handwritten assembly.
+This is unreliable and should be changed.
+
+Another problem: user defined functions need to be called using funcall
+This can be solved later with the addition of a few lines.
+
+During the attempted writing of the function below, I realized that I need a way to tell when something is a function.
+So, the function's first 8 bytes will be the negative of the number of args, so that it can be checked easily.
+A function with no arguments looks like a list, though, so that will need to be worked with in the future
+
+lambda_size: # Predicts the size of the compiled body
+	xorq	%rcx, %rcx
+	call	over
+	.lambda_size_loop:
+	call	zornil
+	cmpq	$1, %rax
+	je	.lambda_size_ret
+	call	dup
+	call	car
+	popq	%rax
+	call	cdr
+	cmpq	$0, (%rax)
+	jgt	.lambda_size_flag
+	jz	.lambda_size_list
+	addq	$8, %rcx
+	jmp	.lambda_size_loop
+	.lambda_size_flag:
+	addq	$16, %rcx
+	jmp	.lambda_size_loop
+	.lambda_size_list:
+	pushq	%rcx
+	pushq	%rax
+	call	lambda_size
+	popq	%rcx
+	addq	%rcx, (%rsp)
+	popq	%rcx
+	jmp	.lambda_size_loop
+	.lambda_size_ret:
+	call	drop
+	movq	%rcx, 8(%rsp)
+	ret
+
+I would write lambda now, but I can't test lambda_size until I implement read, so that's probably next.
