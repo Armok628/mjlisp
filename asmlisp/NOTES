@@ -168,7 +168,7 @@ funcall:
 	pushq	%rdi # Restore the return address
 	ret
 
-There are two remaining issues.
+There are three remaining issues.
 
 The most obvious issue is with returning the value left on the stack. This will vary by number of arguments.
 How many times do we call drop before we leave the return value on the stack?
@@ -181,3 +181,55 @@ In Forth, if works like this (to print zero if the top of the stack is zero):
 However, this is a compile-only feature.
 This could maybe be implemented as a flag which decides whether to go through with function calls.
 I think that solution is fairly sloppy.
+
+The last issue is that calling a function "destroys" rax, rcx, rdx, etc. They just need to be preserved somehow.
+
+Round 3 will try to address issues 1 and 3.
+funcall:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	movq	8(%rsp), %rax # Load the pointer to the function
+	movq	$1, %rcx # Set the counter to 1 (0 is # of args)
+	.funcall_loop
+	movq	(%rax,%rcx,8), %rdx # Load the next address
+	cmpq	$0, %rdx
+	jz	.funcall_pushq
+	cmpq	$1, %rdx
+	je	.funcall_pusharg
+	movq	%rax, %r8
+	movq	%rcx, %r9
+	call	*%rdx
+	movq	%r9, %rcx
+	movq	%r8, %rax
+	jmp	.funcall_loop
+	.funcall_pushq:
+	incq	%rcx
+	movq	(%rax,%rcx,8), %rdx # Load the literal to be pushed
+	cmpq	$0, %rdx
+	jz	.funcall_exit # If null, exit (so 0x0 0x0 denotes the end of the function)
+	pushq	%rdx
+	incq	%rcx
+	jmp	.funcall_loop
+	.funcall_pusharg:
+	incq	%rcx
+	movq	(%rax,%rcx,8), %rdx
+	addq	$2, %rdx
+	pushq	(%rbp,%rdx,8)
+	incq	%rcx
+	jmp	.funcall_loop:
+	.funcall_exit
+	# At this point there must only be one thing on the stack
+	popq	%rdx # Take that thing off the stack
+	movq	%rbp, %rsp # Reset the stack
+	popq	%rbp
+	popq	%rdi # Preserve the return address
+	movq	(%rax), %rcx # Store the number of variables
+	incq	%rcx # +1 for function address left on stack
+	.funcall_dropargs:
+	call	drop
+	decq	%rcx
+	cmpq	$0, %rcx
+	jz	.funcall_dropargs
+	pushq	%rdx
+	pushq	%rdi # Restore the return address
+	ret
