@@ -279,3 +279,4 @@ lambda_size: # Predicts the size of the compiled body
 	ret
 
 I would write lambda now, but I can't test lambda_size until I implement read, so that's probably next.
+Actually, cancel that, but it will only be able to be tested with literals.
