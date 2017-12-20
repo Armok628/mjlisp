@@ -1,25 +1,49 @@
 .include "inclusions.s"
 .include "lispfuncs/funcall.s"
 
-.type	add, @function
-add:
-	popq	%rbx
-	popq	%rcx
-	popq	%rax
-	movq	8(%rax), %rdi
-	addq	8(%rcx), %rdi
+.type	lsub, @function
+lsub:
+	movq	16(%rsp), %rdi
+	movq	8(%rdi), %rdi
+	movq	8(%rsp), %rax
+	subq	8(%rax), %rdi
 	movq	$2, %rsi
 	call	new_var
-	pushq	%rax
-	pushq	%rbx
+	popq	%rdi
+	movq	%rax, 8(%rsp)
+	movq	%rdi, (%rsp)
+	ret
+lmul:
+	movq	16(%rsp), %rax
+	movq	8(%rax), %rax
+	movq	8(%rsp), %rdi
+	mulq	8(%rdi)
+	movq	%rax, %rdi
+	movq	$2, %rsi
+	call	new_var
+	popq	%rdi
+	movq	%rax, 8(%rsp)
+	movq	%rdi, (%rsp)
 	ret
 
 x:
 	.quad	2,10
 y:
 	.quad	2,20
-f:
-	.quad	-2,1,1,1,2,add,0,0
+f:	# (lambda (x y) (* y (- y x))) => (y y x - *)
+	.quad	-3,1,2,1,2,1,1,lsub,lmul,0,0
+	#f:	#(2 arg function)
+	#	push	arg2
+	#	push	arg2
+	#	push	arg1
+	#	call	lsub
+	#	call	lmul
+	#	return #(not ret!)
+
+.macro	peaq	mem
+	leaq	\mem(%rip), %rax
+	pushq	%rax
+.endm
 
 .globl	main
 .type	main, @function
@@ -27,14 +51,12 @@ main:
 	pushq	%rbp
 	movq	%rsp, %rbp
 
-	leaq	x(%rip), %rax
-	pushq	%rax
-	leaq	y(%rip), %rax
-	pushq	%rax
-	leaq	f(%rip), %rax
-	pushq	%rax
+	peaq	x
+	peaq	y
+	peaq	f
 	call	funcall
 	call	disp
+	call	drop
 	call	terpri
 
 	leave

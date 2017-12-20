@@ -1,15 +1,16 @@
 .type	funcall, @function
-funcall:
+funcall: # Note: Modifies non-volatile %r14 and %r15
 	pushq	%rbp
 	movq	%rsp, %rbp
 	movq	16(%rsp), %rax # Load the pointer to the function
-	movq	$1, %rcx # Set the counter to 1 (0 is # of args)
+	movq	$1, %rcx # Set the counter to 1 (At 0 would be # of args)
 	.funcall_loop:
 	movq	(%rax,%rcx,8), %rdx # Load the next address
 	cmpq	$0, %rdx
 	jz	.funcall_pushq
 	cmpq	$1, %rdx
 	je	.funcall_pusharg
+	# Need to preserve function and counter -- To-do: Find a better way
 	movq	%rax, %r14
 	movq	%rcx, %r15
 	call	*%rdx
@@ -27,8 +28,10 @@ funcall:
 	jmp	.funcall_loop
 	.funcall_pusharg:
 	incq	%rcx
-	movq	(%rax,%rcx,8), %rdx
-	addq	$2, %rdx
+	movq	(%rax), %rdx # -(# of args + 1)
+	negq	%rdx
+	subq	(%rax,%rcx,8), %rdx # Get argument offset
+	addq	$2, %rdx # Skip return address and base pointer
 	pushq	(%rbp,%rdx,8)
 	incq	%rcx
 	jmp	.funcall_loop
@@ -37,18 +40,13 @@ funcall:
 	popq	%rdx # Take that thing off the stack
 	movq	%rbp, %rsp # Reset the stack
 	popq	%rbp # (see above)
-	popq	%rdi # Preserve the return address
-	# Now the arguments are on top of the stack
-test:
-	movq	(%rax), %rcx # Store the number of variables
-	negq	%rcx
-	incq	%rcx # +1 for function address left on stack
-	pushq	%rdx # Put return value back on stack
+	# Now the stack is the way it was when the function was called
+	movq	(%rax), %rcx # Store the number variables (plus 1)
+	negq	%rcx # (see above)
 	.funcall_dropargs:
-	popq	8(%rsp) # nip (drop second stack item)
+	popq	8(%rsp) # nip (drop would remove return address)
 	decq	%rcx
-	cmpq	$0, %rcx
-	jnz	.funcall_dropargs
-	pushq	%rdx
-	pushq	%rdi # Replace the return address
+	cmpq	$1, %rcx
+	jne	.funcall_dropargs
+	movq	%rdx, 8(%rsp) # Replace final arg with return value
 	ret

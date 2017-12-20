@@ -286,3 +286,16 @@ What I mean is, I can replace "call dup" with "push (%rsp)" and "call drop" with
 This would be more efficient, but could reduce the readability of the assembly (if no comments were added).
 For places where a function call is required, I could impose my own calling convention to keep things standard,
 e.g. r14 and r15 are reserved for use by funcall to preserve %rax and %rcx around call *%rdx
+
+Anyway, now for lambda. To convert Lisp into RPN, I wrote this function in Common Lisp:
+(defun rpn (l) (if (atom l) (cons l) (reduce #'append (append (mapcar #'rpn (cdr l)) (cons (rpn (car l)) nil)))))
+
+My thought process was like this:
+I need to move the function to the back, so (append (cdr l) (cons (car l) nil)) would work.
+However, arguments (and even the function) could be expressions, so (append (mapcar #'rpn (cdr l)) (cons (rpn (car l)) nil)) would work
+Then it needs to handle atoms, so (if (atom l) l (append (mapcar #'rpn (cdr l)) (cons (rpn (car l)) nil))) would work
+Then it needs to be flattened, and this resulted in the final product above.
+
+On its own, flatten can be defined by (defun flatten (l) (if (atom l) (cons l nil) (reduce #'append (mapcar #'flatten l))))
+
+Now I just need figure out how to translate rpn into assembly

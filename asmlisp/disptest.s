@@ -28,6 +28,9 @@ main:
 	call	cons # (10 sym . 30)
 	call	disp
 	call	terpri
+	call	disp
+	call	terpri
+	call	drop
 
 	leave
 	ret

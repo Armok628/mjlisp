@@ -1,10 +1,10 @@
 From McCarthy:
 
-atom	DONE
-eq	DONE
-car	DONE
-cdr	DONE
-cons	DONE
+atom		DONE
+eq		DONE
+car		DONE
+cdr		DONE
+cons		DONE
 quote
 cond
 lambda
@@ -15,4 +15,5 @@ Others:
 read
 eval
 apply
-disp	DONE
+disp		DONE
+funcall		DONE

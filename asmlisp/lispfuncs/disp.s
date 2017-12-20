@@ -42,6 +42,7 @@ disp:
 	call	dup # Duplicate the list
 	call	car # Replace duplicate with head
 	call	disp # Print the head (and drop from stack)
+	call	drop
 
 	movq	$32, %rdi
 	call	putchar@plt # space
@@ -60,7 +61,7 @@ disp:
 	movq	$32, %rdi # space
 	call	putchar@plt
 
-	pushq	(%rsp) # LAZY HACK: Dupe so disp_cell_lx has something to remove
+	#pushq	(%rsp) # LAZY HACK: Dupe so disp_cell_lx has something to remove
 	call	disp
 
 	movq	$32, %rdi # space
@@ -74,6 +75,8 @@ disp:
 	call	putchar@plt # )
 
 	.disp_exit:
-	popq	%rdi # preserve return address
-	movq	%rdi, (%rsp) # clobber top stack item with return address
+	#popq	%rdi # preserve return address
+	#movq	%rdi, (%rsp) # clobber top stack item with return address
+	leaq	NIL(%rip), %rdi
+	movq	%rdi, 8(%rsp) # Return NIL
 	ret

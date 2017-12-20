@@ -56,6 +56,7 @@ main:
 	call	cons # (10 (20 sym) 30)
 	call	dup
 	call	disp
+	call	drop
 	call	terpri
 	call	lambda_size
 	call	printint
