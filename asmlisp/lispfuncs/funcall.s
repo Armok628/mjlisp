@@ -41,12 +41,14 @@ funcall: # Note: Modifies non-volatile %r14 and %r15
 	movq	%rbp, %rsp # Reset the stack
 	popq	%rbp # (see above)
 	# Now the stack is the way it was when the function was called
-	movq	(%rax), %rcx # Store the number variables (plus 1)
+	movq	(%rax), %rcx # Store the number of variables (plus 1)
 	negq	%rcx # (see above)
 	.funcall_dropargs:
+	cmpq	$1, %rcx
+	je	.funcall_ret
 	popq	8(%rsp) # nip (drop would remove return address)
 	decq	%rcx
-	cmpq	$1, %rcx
-	jne	.funcall_dropargs
+	jmp	.funcall_dropargs
+	.funcall_ret:
 	movq	%rdx, 8(%rsp) # Replace final arg with return value
 	ret

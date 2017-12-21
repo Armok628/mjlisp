@@ -30,7 +30,7 @@ x:
 	.quad	2,10
 y:
 	.quad	2,20
-f:	# (lambda (x y) (* y (- y x))) => (y y x - *)
+f1:	# (lambda (x y) (* y (- y x))) => (y y x - *)
 	.quad	-3,1,2,1,2,1,1,lsub,lmul,0,0
 	#f:	#(2 arg function)
 	#	push	arg2
@@ -39,6 +39,9 @@ f:	# (lambda (x y) (* y (- y x))) => (y y x - *)
 	#	call	lsub
 	#	call	lmul
 	#	return #(not ret!)
+
+f2:	# (lambda () (* 20 (- 20 10))) => (20 20 10 - *)
+	.quad	-1,0,y,0,y,0,x,lsub,lmul,0,0
 
 .macro	peaq	mem
 	leaq	\mem(%rip), %rax
@@ -53,7 +56,12 @@ main:
 
 	peaq	x
 	peaq	y
-	peaq	f
+	peaq	f1
+	call	funcall
+	call	disp
+	call	drop
+	call	terpri
+	peaq	f2
 	call	funcall
 	call	disp
 	call	drop
