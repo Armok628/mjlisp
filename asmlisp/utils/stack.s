@@ -30,7 +30,7 @@ swap:
 	ret
 .type	drop, @function
 drop:
-	popq	(%rsp)
+	popq	(%rsp) # nip (drop stack item under return address)
 	ret
 .type	emit, @function
 emit:
@@ -44,7 +44,7 @@ cr:				# Identical to terpri
 	call	putchar@plt
 	ret
 .type	pick, @function
-pick:				# untested
+pick:
 	movq	8(%rsp), %rax
 	incq	%rax
 	movq	(%rsp,%rax,8), %rax

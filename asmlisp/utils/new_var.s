@@ -2,7 +2,7 @@
 new_var:
 	pushq	%rdi
 	pushq	%rsi
-	movq	$16, %rdi
+	movq	$24, %rdi
 	call	malloc@plt
 	popq	(%rax)	
 	popq	8(%rax)

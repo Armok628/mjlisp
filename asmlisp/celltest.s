@@ -8,7 +8,8 @@ printint:
 	movq	8(%rsp), %rsi
 	xorq	%rax, %rax
 	call	printf@plt
-	call	drop
+	popq	%rdi
+	movq	%rdi, (%rsp)
 	ret
 
 .globl	main

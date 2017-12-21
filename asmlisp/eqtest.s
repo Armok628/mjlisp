@@ -53,15 +53,19 @@ main:
 ######################################
 	call	eq
 	call	disp # NIL
+	call	drop
 	call	terpri
 	call	eq
 	call	disp # T
+	call	drop
 	call	terpri
 	call	eq
 	call	disp # NIL
+	call	drop
 	call	terpri
 	call	eq
 	call	disp # T
+	call	drop
 	call	terpri
 
 	leave

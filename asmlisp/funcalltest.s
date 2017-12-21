@@ -1,5 +1,4 @@
 .include "inclusions.s"
-.include "lispfuncs/funcall.s"
 
 .type	lsub, @function
 lsub:

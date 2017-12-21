@@ -1,5 +1,4 @@
 .include "inclusions.s"
-.include "utils/lambda_size.s"
 
 teststr:
 	.string "sym"
