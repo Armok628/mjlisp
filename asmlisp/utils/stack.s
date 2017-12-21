@@ -30,15 +30,13 @@ swap:
 	ret
 .type	drop, @function
 drop:
-	popq	%rdi
 	popq	(%rsp)
-	pushq	%rdi
 	ret
 .type	emit, @function
 emit:
 	movq	8(%rsp), %rdi
 	call	putchar@plt
-	call	drop
+	popq	(%rsp)
 	ret
 .type	cr, @function
 cr:				# Identical to terpri
