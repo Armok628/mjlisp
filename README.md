@@ -1,7 +1,7 @@
 # mjlisp
 Amateur LISP interpreter in pure C with no research
 
-*Update, 12/5/17:  I added a bunch of assembly stuff that I could possibly use later, but none of it is in use at the moment*
+*Update, 1/6/18:  This repo is to be archived. My new LISP compiler is located in the **stacklisp** repo.*
 
 I am aware of the "Build Your Own Lisp" book, but I haven't read any part of it. I guess you'll just have to take my word for it, but if there's any similarity at all, it's purely by coincidence. At the start of this project, I was an incoming college freshman intent on majoring in Computer Engineering. The interpreter was fully functional by the start of school, but I have since begun improving it from time to time.
 
